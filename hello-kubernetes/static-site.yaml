@@ -10,7 +10,7 @@ spec:
       image: dockerhub.azk8s.cn/alpine/git:v2.24.1
       workingDir: /website
       command: ["git"]
-      args: ["clone", "--single-branch", "--branch", "master", "https://gitee.com/jijiechen/static-site.git", "."]
+      args: ["clone", "--single-branch", "--branch", "master", "https://gitee.com/idcf-devops-on-kubernetes/static-site.git", "."]
       volumeMounts:
         - name: website
           mountPath: /website
