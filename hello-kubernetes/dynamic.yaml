@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-idcf
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: hello-idcf
+  template:
+    metadata:
+      labels:
+        app: hello-idcf
+    spec:
+      containers:
+        - name: app
+          image: ccr.ccs.tencentyun.com/idcf-k8s-devops/hello-idcf:v1
+          ports:
+            - name: http
+              containerPort: 80
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: 200m
+            limits:
+              memory: 256Mi
+              cpu: 500m
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-idcf
+spec:
+  type: LoadBalancer
+  selector:
+    app: hello-idcf
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http

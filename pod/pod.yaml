@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mypod
+spec:
+  containers:
+    - name: app
+      image: dockerhub.azk8s.cn/jijiechen/hello-idcf:v1
+      ports:
+        - name: http
+          containerPort: 80
