@@ -1,0 +1,16 @@
+
+
+
+podSpec:
+  volumes:
+    - name: app-data
+      persistentVolumeClaim:
+        claimName: video-gallery-data
+  containers:
+    - name: app
+      volumeMounts:
+        - mountPath: /app/storage
+          name: app-data
+
+
+# 文档： https://kubernetes.io/docs/concepts/storage/persistent-volumes/

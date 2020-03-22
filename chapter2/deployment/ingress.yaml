@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    ingress.kubernetes.io/rewrite-target: /
+  generation: 1
+  name: video-gallery
+spec:
+  rules:
+    - host: video-gallery-ingress.jijiechen.com
+      http:
+        paths:
+        - backend:
+            serviceName: video-gallery
+            servicePort: 80
+          path: /

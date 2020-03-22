@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: video-gallery-data
+  labels:
+    app: video-gallery
+spec:
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  storageClassName: cbs
+  resources:
+    requests:
+      storage: 10Gi

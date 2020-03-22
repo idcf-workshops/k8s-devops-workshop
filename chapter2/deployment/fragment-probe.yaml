@@ -1,0 +1,25 @@
+ PodSpec:
+  containers:
+    - name: app
+      image: hello
+      
+      readinessProbe:
+        httpGet:
+          path: /videos
+          port: 80
+          scheme: HTTP
+        initialDelaySeconds: 5
+        timeoutSeconds: 1
+        periodSeconds: 3
+        sccuessThreshold: 1
+        failureThreshold: 180
+      livenessProbe:
+        httpGet:
+          path: /videos
+          port: 80
+          scheme: HTTP
+        initialDelaySeconds: 20
+        timeoutSeconds: 1
+        periodSeconds: 15
+        sccuessThreshold: 1
+        failureThreshold: 3

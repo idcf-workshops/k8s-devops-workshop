@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: video-gallery
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: video-gallery-label
+  template:
+    metadata:
+      labels:
+        app: video-gallery-label
+    spec:
+      imagePullSecrets: 
+        - name: tencent-cloud-pull-credential
+      containers:
+        - name: app
+          image: ccr.ccs.tencentyun.com/idcf-k8s-devops/video-gallery:v1
+          ports:
+            - name: http
+              containerPort: 80
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 200m
+            limits:
+              memory: 256Mi
+              cpu: 500m
+
+---
+
+apiVersion: apps/v1
+kind: Service
+metadata:
+  name: video-gallery
+spec:
+  type: LoadBalancer
+  selector:
+    app: video-gallery-label
+  ports:
+    - name: http
+      targetPort: 80
+      containerPort: 80
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: tencent-cloud-pull-credential
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: eyJhdXRocyI6eyJjY3IuY2NzLnRlbmNlbnR5dW4uY29tIjp7InVzZXJuYW1lIjoiMTAwMDAwNjI3MTkxIiwicGFzc3dvcmQiOiJvZEdKcE40b25tQyIsImVtYWlsIjoic29tZW9uZUBzb21lcGxhY2UuY29tIiwiYXV0aCI6Ik1UQXdNREF3TmpJM01Ua3hPbTlrUjBwd1RqUnZibTFEIn19fQ==
+
