@@ -9,7 +9,6 @@ kubectl rollout status deploy/video-gallery
 # 在本地访问 Pod（在第2个控制台）
 kubectl port-forward pods/pod-id 5000:80
 
- --
 
 
 

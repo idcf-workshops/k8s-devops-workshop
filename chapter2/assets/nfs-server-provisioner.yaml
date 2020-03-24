@@ -1,0 +1,212 @@
+# helm fetch stable/nfs-server-provisioner
+# helm template ./nfs-server-provisioner-0.3.0.tgz --name idcf --set='image.repository=quay.azk8s.cn/kubernetes_incubator/nfs-provisioner,persistence.enabled=true,persistence.storageClass=cbs,persistence.size=10Gi,resources.limits.cpu=200m,storageClass.mountOptions={noatime}' > nfs.yaml
+# kubectl apply -f nfs.yaml
+
+
+
+
+
+---
+# Source: nfs-server-provisioner/templates/storageclass.yaml
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: nfs
+  labels:
+    app: nfs-server-provisioner
+    chart: nfs-server-provisioner-0.3.0
+    heritage: Tiller
+    release: idcf
+provisioner: cluster.local/idcf-nfs-server-provisioner
+reclaimPolicy: Delete
+
+allowVolumeExpansion: true
+
+
+mountOptions:
+  - noatime
+  
+
+---
+# Source: nfs-server-provisioner/templates/serviceaccount.yaml
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app: nfs-server-provisioner
+    chart: nfs-server-provisioner-0.3.0
+    heritage: Tiller
+    release: idcf
+  name: idcf-nfs-server-provisioner
+---
+# Source: nfs-server-provisioner/templates/clusterrole.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: idcf-nfs-server-provisioner
+  labels:
+    app: nfs-server-provisioner
+    chart: nfs-server-provisioner-0.3.0
+    heritage: Tiller
+    release: idcf
+rules:
+  - apiGroups: [""]
+    resources: ["persistentvolumes"]
+    verbs: ["get", "list", "watch", "create", "delete"]
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["get", "list", "watch", "update"]
+  - apiGroups: ["storage.k8s.io"]
+    resources: ["storageclasses"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["list", "watch", "create", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["services", "endpoints"]
+    verbs: ["get"]
+  - apiGroups: ["extensions"]
+    resources: ["podsecuritypolicies"]
+    resourceNames: ["nfs-provisioner"]
+    verbs: ["use"]
+  - apiGroups: [""]
+    resources: ["endpoints"]
+    verbs: ["get", "list", "watch", "create", "delete", "update", "patch"]
+---
+# Source: nfs-server-provisioner/templates/rolebinding.yaml
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app: nfs-server-provisioner
+    chart: nfs-server-provisioner-0.3.0
+    heritage: Tiller
+    release: idcf
+  name: idcf-nfs-server-provisioner
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: idcf-nfs-server-provisioner
+subjects:
+  - kind: ServiceAccount
+    name: idcf-nfs-server-provisioner
+    namespace: default
+---
+# Source: nfs-server-provisioner/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: idcf-nfs-server-provisioner
+  labels:
+    app: nfs-server-provisioner
+    chart: nfs-server-provisioner-0.3.0
+    heritage: Tiller
+    release: idcf
+spec:
+  type: ClusterIP
+  ports:
+    - port: 2049
+      targetPort: nfs
+      protocol: TCP
+      name: nfs
+    - port: 20048
+      targetPort: mountd
+      protocol: TCP
+      name: mountd
+    - port: 51413
+      targetPort: rpcbind-tcp
+      protocol: TCP
+      name: rpcbind-tcp
+    - port: 51413
+      targetPort: rpcbind-udp
+      protocol: UDP
+      name: rpcbind-udp
+  selector:
+    app: nfs-server-provisioner
+    release: idcf
+
+---
+# Source: nfs-server-provisioner/templates/statefulset.yaml
+apiVersion: apps/v1beta2
+kind: StatefulSet
+metadata:
+  name: idcf-nfs-server-provisioner
+  labels:
+    app: nfs-server-provisioner
+    chart: nfs-server-provisioner-0.3.0
+    heritage: Tiller
+    release: idcf
+spec:
+  # TODO: Investigate how/if nfs-provisioner can be scaled out beyond 1 replica
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nfs-server-provisioner
+      release: idcf
+  serviceName: idcf-nfs-server-provisioner
+  template:
+    metadata:
+      labels:
+        app: nfs-server-provisioner
+        chart: nfs-server-provisioner-0.3.0
+        heritage: Tiller
+        release: idcf
+    spec:
+      # NOTE: This is 10 seconds longer than the default nfs-provisioner --grace-period value of 90sec
+      terminationGracePeriodSeconds: 100
+      serviceAccountName: idcf-nfs-server-provisioner
+      containers:
+        - name: nfs-server-provisioner
+          image: "quay.azk8s.cn/kubernetes_incubator/nfs-provisioner:v2.2.1-k8s1.12"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: nfs
+              containerPort: 2049
+              protocol: TCP
+            - name: mountd
+              containerPort: 20048
+              protocol: TCP
+            - name: rpcbind-tcp
+              containerPort: 111
+              protocol: TCP
+            - name: rpcbind-udp
+              containerPort: 111
+              protocol: UDP
+          securityContext:
+            capabilities:
+              add:
+                - DAC_READ_SEARCH
+                - SYS_RESOURCE
+          args:
+            - "-provisioner=cluster.local/idcf-nfs-server-provisioner"
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: SERVICE_NAME
+              value: idcf-nfs-server-provisioner
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          volumeMounts:
+            - name: data
+              mountPath: /export
+          resources:
+          resources:
+            limits:
+              cpu: 200m
+            
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: "cbs"
+        resources:
+          requests:
+            storage: "10Gi"
+
