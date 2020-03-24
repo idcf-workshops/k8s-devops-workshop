@@ -1,16 +1,14 @@
-
-
-
-podSpec:
-  volumes:
-    - name: app-data
-      persistentVolumeClaim:
-        claimName: video-gallery-data
-  containers:
-    - name: app
-      volumeMounts:
-        - mountPath: /app/storage
-          name: app-data
+volumes:
+  - name: app-data
+    persistentVolumeClaim:
+      claimName: video-gallery-data
+containers:
+  - name: app
+    volumeMounts:
+      - mountPath: /app/storage
+        name: app-data
 
 
 # 文档： https://kubernetes.io/docs/concepts/storage/persistent-volumes/
+# pvc 中的 storageClassName 需要集群所在环境提供动态存储功能的支持
+# 如果是 Minikube 环境，建议用 hostPath 类型的存储卷

@@ -8,4 +8,4 @@ curl http://localhost:5000
 
 # 以"开发模式"运行 Video Gallery
 docker run --rm -e 'ASPNETCORE_ENVIRONMENT=Development' -p 5000:80 video-gallery:v1
-curl http://localhost:5000
+curl http://localhost:5000/gif

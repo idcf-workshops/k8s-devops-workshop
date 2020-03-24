@@ -1,7 +1,4 @@
 
-# 创建 Secret
-kubectl apply -f ./deployment/pull-secret.yaml
-
 # 部署应用
 kubectl apply -f ./deployment/deployment.yaml
 
@@ -10,7 +7,11 @@ kubectl get pods -w
 kubectl rollout status deploy/video-gallery
 
 # 在本地访问 Pod（在第2个控制台）
-kubectl port-forward pods/pod-id
+kubectl port-forward pods/pod-id 5000:80
+
+ --
+
+
 
 # 删除 Pod（在第2个控制台）
 kubectl delete pods/pod-id
