@@ -6,10 +6,10 @@ set -e
 REPO=$1
 PUSH=$2
 
-# docker build -f ./client/web/Dockerfile -t ${REPO}boat-house-client:workshop client/web
-# docker build -f ./management/web/Dockerfile -t ${REPO}boat-house-management:workshop management/web
-# docker build -f ./statistics-service/api/Dockerfile -t ${REPO}boat-house-statistics_service_api:workshop statistics-service/api
-# docker build -f ./statistics-service/worker/Dockerfile -t ${REPO}boat-house-statistics_service_worker:workshop statistics-service/worker
+docker build -f ./client/web/Dockerfile -t ${REPO}boat-house-client:workshop client/web
+docker build -f ./management/web/Dockerfile -t ${REPO}boat-house-management:workshop management/web
+docker build -f ./statistics-service/api/Dockerfile -t ${REPO}boat-house-statistics_service_api:workshop statistics-service/api
+docker build -f ./statistics-service/worker/Dockerfile -t ${REPO}boat-house-statistics_service_worker:workshop statistics-service/worker
 
 docker-compose -f ./product-service/api/docker-compose.build.yaml up
 docker build -f ./product-service/api/Dockerfile.image -t ${REPO}boat-house-product_service_api:workshop product-service/api

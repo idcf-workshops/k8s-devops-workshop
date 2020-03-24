@@ -12,8 +12,8 @@ curl video-gallery.jijiechen.com
     kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/mandatory.yaml
     kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/provider/cloud-generic.yaml
 # 使用中国源
-    kubectl apply -f https://gitee.com/idcf-devops-on-kubernetes/workshop-assets/raw/master/chapter2/assets/mandatory.yaml
-    kubectl apply -f https://gitee.com/idcf-devops-on-kubernetes/workshop-assets/raw/master/chapter2/assets/cloud-generic.yaml
+    kubectl apply -f https://gitee.com/idcf-devops-on-kubernetes/workshop-assets/raw/master/chapter2/assets/ingress-controller-mandatory.yaml
+    kubectl apply -f https://gitee.com/idcf-devops-on-kubernetes/workshop-assets/raw/master/chapter2/assets/ingress-controller-cloud-generic.yaml
 
 kubectl rollout status deploy/nginx-ingress-controller -n ingress-nginx
 kubectl get ingress
