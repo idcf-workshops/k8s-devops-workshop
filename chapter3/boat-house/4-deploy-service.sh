@@ -8,7 +8,7 @@ ARG_3=$3
 
 
 SERVICES='client management statistics-service-api statistics-service-worker product-service-api account-service-api'
-IMAGE_TAG=master-85
+IMAGE_TAG=workshop
 ENV=test
 REPO=ccr.ccs.tencentyun.com/idcf-k8s-devops/
 
