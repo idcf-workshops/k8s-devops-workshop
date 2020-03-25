@@ -1,5 +1,6 @@
 #!/bin/bash
 
+#示例项目：https://github.com/idcf-boat-house/boat-house
 
 set -e
 
