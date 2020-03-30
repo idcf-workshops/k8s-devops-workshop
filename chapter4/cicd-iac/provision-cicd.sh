@@ -12,18 +12,14 @@ function usage() {
     echo " $0 --help"
     echo
     echo "Example:"
-    echo " $0 deploy --suffix mydemo"
+    echo " $0 deploy"
     echo
     echo "COMMANDS:"
-    echo "   deploy                   Set up the demo projects and deploy demo apps"
-    echo "   delete                   Clean up and remove demo projects and objects"
-    echo 
-    echo "OPTIONS:"
-    echo "   --suffix [suffix]  Required    Suffix to be added to demo project names e.g. ci-SUFFIX."
+    echo "   deploy         Set up the demo projects and deploy demo apps"
+    echo "   delete         Clean up and remove demo projects and objects"
     echo
 }
 
-ARG_PROJECT_SUFFIX=
 ARG_COMMAND=deploy
 
 while :; do
@@ -33,16 +29,6 @@ while :; do
             ;;
         delete)
             ARG_COMMAND=delete
-            ;;
-        --suffix)
-            if [ -n "$2" ]; then
-                ARG_PROJECT_SUFFIX=$2
-                shift
-            else
-                printf 'ERROR: "--suffix" requires a non-empty value.\n' >&2
-                usage
-                exit 255
-            fi
             ;;
         -h|--help)
             usage
@@ -68,10 +54,6 @@ done
 # CONFIGURATION                                                                #
 ################################################################################
 
-if [ -z "$ARG_PROJECT_SUFFIX" ]; then
-    echo "Please use '--suffix' parameter to sepecify a project suffix."
-    exit 1
-fi
 
 
 NAMESPACES=$(kubectl get namespaces)
@@ -90,27 +72,27 @@ create_ns(){
 #   sonarqube: 1.25G 2.5G
 #   nexus: 0.5G 2Gi
 function deploy() {
-    create_ns cicd-$ARG_PROJECT_SUFFIX
+    create_ns cicd-iac
 
   sleep 2
 
   echo 'Provisioning applications...'
-  kcd cicd-$ARG_PROJECT_SUFFIX
+  kcd cicd-iac
   
-  ./tmpl.sh ./cicd-infra/jenkins.yaml ./cicd-infra/vars | kubectl apply -f -
+  ./tmpl.sh ./manifests/jenkins.yaml ./manifests/vars | kubectl apply -f -
   sleep 3
 
-  ./tmpl.sh ./cicd-infra/sonarqube.yaml ./cicd-infra/vars | kubectl apply -f -
+  ./tmpl.sh ./manifests/sonarqube.yaml ./manifests/vars | kubectl apply -f -
   sleep 3
 
-  ./tmpl.sh ./cicd-infra/nexus.yaml ./cicd-infra/vars | kubectl apply -f -
+  ./tmpl.sh ./manifests/nexus.yaml ./manifests/vars | kubectl apply -f -
   sleep 3
 
-  ./tmpl.sh ./cicd-infra/gogs.yaml ./cicd-infra/vars | kubectl apply -f -
+  ./tmpl.sh ./manifests/gogs.yaml ./manifests/vars | kubectl apply -f -
   sleep 3
 
   echo "Provisioning installer"
-  ./tmpl.sh ./cicd-infra/cicd-installer.yaml ./cicd-infra/vars | kubectl apply -f -
+  ./tmpl.sh ./manifests/cicd-installer.yaml ./manifests/vars | kubectl apply -f -
 
   echo "Wait for installing..."
   sleep 3
@@ -142,7 +124,7 @@ echo_header "DevOps on Kubernetes ($(date))"
 case "$ARG_COMMAND" in
     delete)
         echo "Delete demo..."
-        kubectl delete namespace dev-$ARG_PROJECT_SUFFIX stage-$ARG_PROJECT_SUFFIX prod-$ARG_PROJECT_SUFFIX cicd-$ARG_PROJECT_SUFFIX
+        kubectl delete namespace/cicd-iac
         echo
         echo "Delete completed successfully!"
         kcd default
@@ -153,7 +135,7 @@ case "$ARG_COMMAND" in
         deploy
         echo
         echo "Provisioning completed successfully!"
-        kcd cicd-$ARG_PROJECT_SUFFIX
+        kcd cicd-iac
         ;;
         
     *)

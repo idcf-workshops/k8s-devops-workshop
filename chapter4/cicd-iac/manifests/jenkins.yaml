@@ -91,14 +91,13 @@ metadata:
   labels:
     app: jenkins
 data:
-  hello-dotnet: |-
+  hello-world: |-
     <?xml version='1.1' encoding='UTF-8'?>
     <project>
       <actions/>
       <description></description>
       <keepDependencies>false</keepDependencies>
       <scm class="hudson.scm.NullSCM"/>
-      <assignedNode>dotnet</assignedNode>
       <canRoam>false</canRoam>
       <disabled>false</disabled>
       <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
@@ -107,13 +106,12 @@ data:
       <concurrentBuild>false</concurrentBuild>
       <builders>
         <hudson.tasks.Shell>
-          <command>set +x; echo &quot;Hello world from .NET Core SDK $(dotnet --version)&quot;</command>
+          <command>set +x; echo &quot;Hello world&quot;</command>
         </hudson.tasks.Shell>
       </builders>
       <publishers/>
       <buildWrappers/>
     </project>
-
 
 
 ---
@@ -457,12 +455,9 @@ data:
     EOF
     }
 
-    PROJECTS=("ECommerce.Gateway" "ECommerce.Catalog.Api" "ECommerce.Customers.Api" "ECommerce.Payment.Host" "ECommerce.Reporting.Api" "ECommerce.Sales.Api" "ECommerce.Shipping.Host" "ECommerce.WebApp");
+    mkdir -p /var/jenkins_home/jobs/boat-house
+    echo $(create_project boat-house) > /var/jenkins_home/jobs/boat-house/config.xml
 
-    for PROJ in ${PROJECTS[@]} ; do
-        mkdir -p /var/jenkins_home/jobs/$PROJ
-        echo $(create_project $PROJ) > /var/jenkins_home/jobs/$PROJ/config.xml
-    done
 
 
 ---
