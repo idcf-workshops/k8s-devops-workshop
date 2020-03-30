@@ -1,0 +1,197 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cicd-installer
+  labels:
+    app: installer
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+groupNames: null
+metadata:
+  name: cicd_installer_admin
+  labels:
+    app: installer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+  - kind: ServiceAccount
+    name: cicd-installer
+
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: installer-init-script
+  labels:
+    app: installer
+data:
+  init.sh: |-
+      set -x 
+      set -e
+
+      kubectl config set-cluster kube --server=https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_SERVICE_PORT --certificate-authority=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      kubectl config set-context kube --cluster=kube
+      kubectl config set-credentials user --token="$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)"
+      kubectl config set-context kube --user=user
+      kubectl config use-context kube
+      kubectl config set-context $(kubectl config current-context) --namespace $(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
+
+      kubectl rollout status deployment/gogs-postgresql
+      kubectl rollout status deployment/gogs
+
+      sleep 5
+      
+      GOGS_USER=gogs
+      GOGS_PWD=gogs
+
+      _RETURN=$(curl -o /tmp/curl.log -sL -w "%{http_code}" http://gogs:3000/user/sign_up \
+      --form user_name=$GOGS_USER \
+      --form password=$GOGS_PWD \
+      --form retype=$GOGS_PWD \
+      --form email=gogs@gogs.com)
+
+      if [ $_RETURN != "200" ] && [ $_RETURN != "302" ] ; then
+        echo "ERROR: Failed to create default Gogs user 'gogs'"
+        cat /tmp/curl.log
+        exit 255
+      fi
+
+      sleep 3
+
+      function migrate_repo(){
+        local _REMOTE_REPO=$1
+        local _NAME_SUFFIX="${_REMOTE_REPO##*/}"
+        local _GOGS_REPO_NAME="${_NAME_SUFFIX%.git}"
+        cat <<EOF > /tmp/data.json
+      {
+      "clone_addr": "$_REMOTE_REPO",
+      "uid": 1,
+      "repo_name": "$_GOGS_REPO_NAME"
+      }
+      EOF
+
+        local _RETURN=$(curl -sL -w "%{http_code}" http://gogs:3000/$GOGS_USER/$_GOGS_REPO_NAME -o /dev/null)
+        if [ $_RETURN == "404" ] ;then
+        _RETURN=$(curl -o /tmp/curl.log -sL -w "%{http_code}" -H "Content-Type: application/json" \
+        -u $GOGS_USER:$GOGS_PWD -X POST http://gogs:3000/api/v1/repos/migrate -d @/tmp/data.json)
+
+            if [ $_RETURN != "201" ] ;then
+                echo "ERROR: Failed to import repo $_REMOTE_REPO"
+                cat /tmp/curl.log
+            fi
+        fi
+      }
+
+      function add_web_hook(){
+        local PROJ=$1
+          cat <<EOF > /tmp/data.json
+      {
+          "type": "gogs",
+          "config": {
+          "url": "http://jenkins/job/$PROJ/build?token=iDbVmjoqgBXe",
+          "content_type": "json"
+          },
+          "events": [
+          "push"
+          ],
+          "active": true
+      }
+      EOF
+
+          local _RETURN=$(curl -o /tmp/curl.log -sL -w "%{http_code}" -H "Content-Type: application/json" \
+          -u $GOGS_USER:$GOGS_PWD -X POST http://gogs:3000/api/v1/repos/gogs/$PROJ/hooks -d @/tmp/data.json)
+
+          if [ $_RETURN != "201" ] ; then
+              echo "ERROR: Failed to set webhook for project $PROJ"
+              cat /tmp/curl.log
+          fi
+      }
+
+      # migrate_repo
+      for p in "dev-services" "ECommerce.Gateway" "ECommerce.Catalog.Api" "ECommerce.Payment.Host" "ECommerce.Shipping.Host" "ECommerce.Common" "ECommerce.Reporting.Api" "ECommerce.WebApp" "ECommerce.Customers.Api" "ECommerce.Sales.Api" "ECommerce.Services.Common" ;  do 
+        migrate_repo https://github.com/netconf-cn2019-workshop/$p.git 
+        sleep 2
+        if [ "$p" != "ECommerce.WebApp" ] && [ "$p" != "ECommerce.Services.Common" ] && [ "$p" != "ECommerce.Common" ]; then
+          add_web_hook $p
+          sleep 2
+        fi
+      done
+
+      function disable_outreach() {
+        local _NEXUS_USER=$1
+        local _NEXUS_PWD=$2
+        local _NEXUS_URL=$3
+
+      _DISABLE_JSON=$(cat << EOM
+      {
+        "name": "disable_outreach",
+        "type": "groovy",
+        "content": "capabilityRegistry = container.lookup(org.sonatype.nexus.capability.CapabilityRegistry.class)\ncapabilityRegistry.all.findAll {it.context().type().toString().startsWith(\"Outreach\")}.each {\ncapabilityRegistry.disable(it.context().id())\n}"
+      }
+      EOM
+      )
+        curl -v -H "Accept: application/json" -H "Content-Type: application/json" -d "$_DISABLE_JSON" -u "$_NEXUS_USER:$_NEXUS_PWD" "${_NEXUS_URL}/service/rest/v1/script/"
+        curl -v -X POST -H "Content-Type: text/plain" -u "$_NEXUS_USER:$_NEXUS_PWD" "${_NEXUS_URL}/service/rest/v1/script/disable_outreach/run"
+      }
+
+      function change_admin_password() {
+        local _NEXUS_USER=$1
+        local _NEXUS_PWD=$2
+        local _NEXUS_URL=$3
+
+      _CHG_PWD_JSON=$(cat << EOM
+      {
+        "name": "reset_password",
+        "type": "groovy",
+        "content": "security.securitySystem.changePassword('admin','admin')"
+      }
+      EOM
+      )
+
+        curl -v -H "Accept: application/json" -H "Content-Type: application/json" -d "$_CHG_PWD_JSON" -u "$_NEXUS_USER:$_NEXUS_PWD" "${_NEXUS_URL}/service/rest/v1/script/"
+        curl -v -X POST -H "Content-Type: text/plain" -u "$_NEXUS_USER:$_NEXUS_PWD" "${_NEXUS_URL}/service/rest/v1/script/reset_password/run"
+      }
+
+      kubectl rollout status deployment/nexus
+
+      disable_outreach admin admin123 'http://nexus:8081'
+      change_admin_password admin admin123 'http://nexus:8081'
+
+      echo -e "\e[1;32mInstallation has completed successfully.\e[0m"
+
+
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cicd-installer
+  labels:
+    app: installer
+spec:
+  activeDeadlineSeconds: 600
+  completions: 1
+  parallelism: 1
+  template:
+    spec:
+      serviceAccountName: cicd-installer
+      restartPolicy: Never
+      containers:
+        - name: cicd-installer-job
+          image: dockerhub.azk8s.cn/jijiechen/kubectl:1.16.0
+          volumeMounts:            
+            - name: init-script
+              mountPath: /var/init-script
+          command:
+            - /bin/bash
+            - /var/init-script/init.sh
+      volumes:
+        - name: init-script
+          configMap:
+            name: installer-init-script

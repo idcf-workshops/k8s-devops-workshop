@@ -1,0 +1,584 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: jenkins
+  labels:
+    app: jenkins
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+groupNames: null
+metadata:
+  name: jenkins_edit
+  labels:
+    app: jenkins
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edit
+subjects:
+  - kind: ServiceAccount
+    name: jenkins
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: jenkins-jnlp
+  labels:
+    app: jenkins
+spec:
+    type: ClusterIP
+    ports:
+      - name: agent
+        nodePort: 0
+        port: 50000
+        protocol: TCP
+        targetPort: 50000
+    selector:
+      name: jenkins
+    sessionAffinity: None
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: jenkins
+  labels:
+    app: jenkins
+spec:
+    type: ClusterIP
+    ports:
+      - name: web
+        nodePort: 0
+        port: 80
+        protocol: TCP
+        targetPort: 8080
+    selector:
+      name: jenkins
+    sessionAffinity: None
+
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: jenkins-ingress
+  labels:
+    app: jenkins
+  annotations:
+    ingress.kubernetes.io/rewrite-target: /
+    kubernetes.io/ingress.class: nginx
+  generation: 1
+spec:
+  rules:
+  - host: jenkins.$$dns_suffix
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: jenkins
+          servicePort: 80
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jenkins-jobs
+  labels:
+    app: jenkins
+data:
+  hello-dotnet: |-
+    <?xml version='1.1' encoding='UTF-8'?>
+    <project>
+      <actions/>
+      <description></description>
+      <keepDependencies>false</keepDependencies>
+      <scm class="hudson.scm.NullSCM"/>
+      <assignedNode>dotnet</assignedNode>
+      <canRoam>false</canRoam>
+      <disabled>false</disabled>
+      <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+      <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+      <triggers/>
+      <concurrentBuild>false</concurrentBuild>
+      <builders>
+        <hudson.tasks.Shell>
+          <command>set +x; echo &quot;Hello world from .NET Core SDK $(dotnet --version)&quot;</command>
+        </hudson.tasks.Shell>
+      </builders>
+      <publishers/>
+      <buildWrappers/>
+    </project>
+
+
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jenkins
+  labels:
+    app: jenkins
+data:
+  config.xml: |-
+    <?xml version='1.0' encoding='UTF-8'?>
+    <hudson>
+      <disabledAdministrativeMonitors/>
+      <version>2.190.1</version>
+      <numExecutors>5</numExecutors>
+      <mode>NORMAL</mode>
+      <useSecurity>true</useSecurity>
+      <authorizationStrategy class="hudson.security.LegacyAuthorizationStrategy"/>
+      <securityRealm class="hudson.security.LegacySecurityRealm"/>
+      <disableRememberMe>false</disableRememberMe>
+      <projectNamingStrategy class="jenkins.model.ProjectNamingStrategy$DefaultProjectNamingStrategy"/>
+      <workspaceDir>${JENKINS_HOME}/workspace/${ITEM_FULLNAME}</workspaceDir>
+      <buildsDir>${ITEM_ROOTDIR}/builds</buildsDir>
+      <markupFormatter class="hudson.markup.EscapedMarkupFormatter"/>
+      <jdks/>
+      <viewsTabBar class="hudson.views.DefaultViewsTabBar"/>
+      <myViewsTabBar class="hudson.views.DefaultMyViewsTabBar"/>
+      <clouds>
+        <org.csanchez.jenkins.plugins.kubernetes.KubernetesCloud plugin="kubernetes@1.20.0">
+          <name>kubernetes</name>
+          <templates>
+            <org.csanchez.jenkins.plugins.kubernetes.PodTemplate>
+              <inheritFrom></inheritFrom>
+              <name>dotnet agent</name>
+              <instanceCap>2147483647</instanceCap>
+              <idleMinutes>10</idleMinutes>
+              <label>dotnet</label>
+              <serviceAccount>default</serviceAccount>
+              <nodeSelector></nodeSelector>
+              <nodeUsageMode>NORMAL</nodeUsageMode>
+              <customWorkspaceVolumeEnabled>true</customWorkspaceVolumeEnabled>
+              <workspaceVolume class="org.csanchez.jenkins.plugins.kubernetes.volumes.workspace.EmptyDirWorkspaceVolume">
+                <memory>false</memory>
+              </workspaceVolume>
+              <volumes></volumes>
+              <containers>
+                <org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
+                  <name>jnlp</name>
+                  <image>dotnetclub-docker.pkg.coding.net/dotnetconf/mcr/dotnet-22-jenkins-slave:2.2</image>
+                  <privileged>true</privileged>
+                  <alwaysPullImage>false</alwaysPullImage>
+                  <workingDir>/home/jenkins/agent</workingDir>
+                  <command></command>
+                  <args>${computer.jnlpmac} ${computer.name}</args>
+                  <ttyEnabled>false</ttyEnabled>
+                  # Resources configuration is a little hacky. This was to prevent breaking
+                  # changes, and should be cleanned up in the future once everybody had
+                  # enough time to migrate.
+                  <resourceRequestCpu>512m</resourceRequestCpu>
+                  <resourceRequestMemory>512Mi</resourceRequestMemory>
+                  <resourceLimitCpu>512m</resourceLimitCpu>
+                  <resourceLimitMemory>1024Mi</resourceLimitMemory>
+                  <envVars>
+                    <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
+                      <key>JENKINS_URL</key>
+                      <value>http://jenkins</value>
+                    </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
+                    <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
+                      <key>JENKINS_TUNNEL</key>
+                      <value>jenkins-jnlp:50000</value>
+                    </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
+                    <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
+                      <key>TZ</key>
+                      <value>Asia/Shanghai</value>
+                    </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
+                    <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
+                      <key>DNS_SUFFIX</key>
+                      <value>$$dns_suffix</value>
+                    </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
+                  </envVars>
+                </org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
+              </containers>
+              <annotations/>
+              <imagePullSecrets/>
+              <nodeProperties/>
+              <showRawYaml>false</showRawYaml>
+              <podRetention class="org.csanchez.jenkins.plugins.kubernetes.pod.retention.Default"/>
+            </org.csanchez.jenkins.plugins.kubernetes.PodTemplate>
+            <org.csanchez.jenkins.plugins.kubernetes.PodTemplate>
+              <inheritFrom></inheritFrom>
+              <name>image-builder</name>
+              <instanceCap>2147483647</instanceCap>
+              <idleMinutes>10</idleMinutes>
+              <label>image-builder</label>
+              <serviceAccount>jenkins</serviceAccount>
+              <nodeSelector></nodeSelector>
+              <nodeUsageMode>NORMAL</nodeUsageMode>
+              <customWorkspaceVolumeEnabled>true</customWorkspaceVolumeEnabled>
+              <workspaceVolume class="org.csanchez.jenkins.plugins.kubernetes.volumes.workspace.EmptyDirWorkspaceVolume">
+                <memory>false</memory>
+              </workspaceVolume>
+              <volumes>
+                <org.csanchez.jenkins.plugins.kubernetes.volumes.HostPathVolume>
+                  <mountPath>/var/run/docker.sock</mountPath>
+                  <hostPath>/var/run/docker.sock</hostPath>
+                </org.csanchez.jenkins.plugins.kubernetes.volumes.HostPathVolume>
+              </volumes>
+              <containers>
+                <org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
+                  <name>jnlp</name>
+                  <image>dockerhub.azk8s.cn/jenkins/jnlp-slave:alpine</image>
+                  <privileged>true</privileged>
+                  <alwaysPullImage>false</alwaysPullImage>
+                  <workingDir>/home/jenkins/agent</workingDir>
+                  <command></command>
+                  <args>${computer.jnlpmac} ${computer.name}</args>
+                  <ttyEnabled>false</ttyEnabled>
+                  # Resources configuration is a little hacky. This was to prevent breaking
+                  # changes, and should be cleanned up in the future once everybody had
+                  # enough time to migrate.
+                  <resourceRequestCpu>512m</resourceRequestCpu>
+                  <resourceRequestMemory>512Mi</resourceRequestMemory>
+                  <resourceLimitCpu>512m</resourceLimitCpu>
+                  <resourceLimitMemory>1024Mi</resourceLimitMemory>
+                  <envVars>
+                    <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
+                      <key>JENKINS_URL</key>
+                      <value>http://jenkins</value>
+                    </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
+                    <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
+                      <key>JENKINS_TUNNEL</key>
+                      <value>jenkins-jnlp:50000</value>
+                    </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
+                    <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
+                      <key>TZ</key>
+                      <value>Asia/Shanghai</value>
+                    </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
+                    <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
+                      <key>DNS_SUFFIX</key>
+                      <value>$$dns_suffix</value>
+                    </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
+                  </envVars>
+                </org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
+                <org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
+                  <name>docker</name>
+                  <image>dockerhub.azk8s.cn/jijiechen/kubectl:1.16.0</image>
+                  <privileged>true</privileged>
+                  <alwaysPullImage>false</alwaysPullImage>
+                  <workingDir>/home/jenkins/agent</workingDir>
+                  <command>cat</command>
+                  <args></args>
+                  <ttyEnabled>true</ttyEnabled>
+                  # Resources configuration is a little hacky. This was to prevent breaking
+                  # changes, and should be cleanned up in the future once everybody had
+                  # enough time to migrate.
+                  <resourceRequestCpu>512m</resourceRequestCpu>
+                  <resourceRequestMemory>256Mi</resourceRequestMemory>
+                  <resourceLimitCpu>512m</resourceLimitCpu>
+                  <resourceLimitMemory>512Mi</resourceLimitMemory>
+                  <envVars>
+                    <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
+                      <key>JENKINS_URL</key>
+                      <value>http://jenkins</value>
+                    </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
+                    <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
+                      <key>JENKINS_TUNNEL</key>
+                      <value>jenkins-jnlp:50000</value>
+                    </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
+                    <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
+                      <key>TZ</key>
+                      <value>Asia/Shanghai</value>
+                    </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
+                    <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
+                      <key>DNS_SUFFIX</key>
+                      <value>$$dns_suffix</value>
+                    </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
+                  </envVars>
+                </org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
+              </containers>
+              <annotations/>
+              <imagePullSecrets/>
+              <nodeProperties/>
+              <showRawYaml>false</showRawYaml>
+              <podRetention class="org.csanchez.jenkins.plugins.kubernetes.pod.retention.Default"/>
+            </org.csanchez.jenkins.plugins.kubernetes.PodTemplate>
+          </templates>
+          <serverUrl>https://kubernetes.default</serverUrl>
+          <skipTlsVerify>false</skipTlsVerify>
+          <namespace>cicd</namespace>
+          <jenkinsUrl>http://jenkins</jenkinsUrl>
+          <jenkinsTunnel>jenkins-jnlp:50000</jenkinsTunnel>
+          <containerCap>10</containerCap>
+          <retentionTimeout>5</retentionTimeout>
+          <connectTimeout>0</connectTimeout>
+          <readTimeout>0</readTimeout>
+          <podRetention class="org.csanchez.jenkins.plugins.kubernetes.pod.retention.Default"/>
+        </org.csanchez.jenkins.plugins.kubernetes.KubernetesCloud>
+      </clouds>
+      <quietPeriod>5</quietPeriod>
+      <scmCheckoutRetryCount>0</scmCheckoutRetryCount>
+      <views>
+        <hudson.model.AllView>
+          <owner class="hudson" reference="../../.."/>
+          <name>All</name>
+          <filterExecutors>false</filterExecutors>
+          <filterQueue>false</filterQueue>
+          <properties class="hudson.model.View$PropertyList"/>
+        </hudson.model.AllView>
+      </views>
+      <primaryView>All</primaryView>
+      <slaveAgentPort>50000</slaveAgentPort>
+      <label></label>
+      <nodeProperties/>
+      <globalNodeProperties>
+        <hudson.slaves.EnvironmentVariablesNodeProperty>
+          <envVars serialization="custom">
+            <unserializable-parents/>
+            <tree-map>
+              <default>
+                <comparator class="hudson.util.CaseInsensitiveComparator"/>
+              </default>
+              <int>1</int>
+              <string>DNS_SUFFIX</string>
+              <string>$$dns_suffix</string>
+            </tree-map>
+          </envVars>
+        </hudson.slaves.EnvironmentVariablesNodeProperty>
+      </globalNodeProperties>
+      <noUsageStatistics>true</noUsageStatistics>
+    </hudson>
+
+  scriptapproval.xml: |-
+    <?xml version='1.0' encoding='UTF-8'?>
+    <scriptApproval plugin="script-security@1.27">
+      <approvedScriptHashes/>
+      <approvedSignatures>
+      </approvedSignatures>
+      <aclApprovedSignatures/>
+      <approvedClasspathEntries/>
+      <pendingScripts/>
+      <pendingSignatures/>
+      <pendingClasspathEntries/>
+    </scriptApproval>
+  
+  create-docker-registry-credential.groovy: |-
+    import com.cloudbees.plugins.credentials.impl.*;
+    import com.cloudbees.plugins.credentials.*;
+    import com.cloudbees.plugins.credentials.domains.*;
+
+    def credId        = "dockerRegistryCredential"
+    def username      = "$$docker_registry_username"
+    def password      = "$$docker_registry_password"
+    def description   = "image push credential"
+
+    credential = (Credentials) new UsernamePasswordCredentialsImpl(
+        CredentialsScope.GLOBAL,  // Scope
+        credId,                   // id
+        description,              // description
+        username,                 // username
+        password                  // password
+    )
+
+    SystemCredentialsProvider.getInstance().getStore().addCredentials(Domain.global(), credential)
+
+
+  jenkins.model.JenkinsLocationConfiguration.xml: |-
+    <?xml version='1.1' encoding='UTF-8'?>
+    <jenkins.model.JenkinsLocationConfiguration>
+      <adminAddress>admin@cluster.local</adminAddress>
+      <jenkinsUrl>http://jenkins.$$dns_suffix</jenkinsUrl>
+    </jenkins.model.JenkinsLocationConfiguration>
+
+  plugins.txt:
+    git
+    dashboard-view
+    pipeline-stage-view
+    workflow-aggregator
+    kubernetes:1.20.0
+
+  apply_config.sh: |-
+    mkdir -p /usr/share/jenkins/ref/secrets/
+    echo "false" > /usr/share/jenkins/ref/secrets/slave-to-master-security-kill-switch
+    cp /var/jenkins_config/config.xml /var/jenkins_home/
+    cp /var/jenkins_config/scriptapproval.xml /var/jenkins_home/
+    cp /var/jenkins_config/jenkins.model.JenkinsLocationConfiguration.xml /var/jenkins_home/
+
+    mkdir /var/jenkins_home/init.groovy.d
+    cp /var/jenkins_config/create-docker-registry-credential.groovy /var/jenkins_home/init.groovy.d/
+
+    # remove all plugins from shared volume
+    # rm -rf /var/jenkins_home/plugins/*
+
+    # Install missing plugins
+    cp /var/jenkins_config/plugins.txt /var/jenkins_home;
+    rm -rf /usr/share/jenkins/ref/plugins/*.lock
+    /usr/local/bin/install-plugins.sh `echo $(cat /var/jenkins_home/plugins.txt)`;
+    # Copy plugins to shared volume
+    yes n | cp -i /usr/share/jenkins/ref/plugins/* /var/jenkins_plugins/
+
+    # Create jobs
+    for job in $(ls /var/jenkins_jobs); do
+      mkdir -p /var/jenkins_home/jobs/$job
+      cp /var/jenkins_jobs/$job /var/jenkins_home/jobs/$job/config.xml
+    done
+
+    function create_project(){
+        local PROJ=$1
+    cat << EOF
+    <?xml version='1.1' encoding='UTF-8'?>
+    <flow-definition plugin="workflow-job@2.35">
+        <actions/>
+        <description></description>
+        <keepDependencies>false</keepDependencies>
+        <properties/>
+        <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@2.75">
+        <scm class="hudson.plugins.git.GitSCM" plugin="git@4.0.0">
+            <configVersion>2</configVersion>
+            <userRemoteConfigs>
+            <hudson.plugins.git.UserRemoteConfig>
+                <url>http://gogs:3000/gogs/$PROJ.git</url>
+            </hudson.plugins.git.UserRemoteConfig>
+            </userRemoteConfigs>
+            <branches>
+            <hudson.plugins.git.BranchSpec>
+                <name>*/master</name>
+            </hudson.plugins.git.BranchSpec>
+            </branches>
+            <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+            <submoduleCfg class="list"/>
+            <extensions/>
+        </scm>
+        <scriptPath>Jenkinsfile</scriptPath>
+        <lightweight>true</lightweight>
+        </definition>
+        <triggers/>
+        <authToken>iDbVmjoqgBXe</authToken>
+        <disabled>false</disabled>
+    </flow-definition>
+    EOF
+    }
+
+    PROJECTS=("ECommerce.Gateway" "ECommerce.Catalog.Api" "ECommerce.Customers.Api" "ECommerce.Payment.Host" "ECommerce.Reporting.Api" "ECommerce.Sales.Api" "ECommerce.Shipping.Host" "ECommerce.WebApp");
+
+    for PROJ in ${PROJECTS[@]} ; do
+        mkdir -p /var/jenkins_home/jobs/$PROJ
+        echo $(create_project $PROJ) > /var/jenkins_home/jobs/$PROJ/config.xml
+    done
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jenkins
+  labels:
+    app: jenkins
+spec:
+  replicas: 1
+  strategy: 
+    type: Recreate
+  selector:
+    matchLabels:
+      name: jenkins
+      app: jenkins
+  template:
+    metadata:
+      labels:
+        name: jenkins
+        app: jenkins
+    spec:
+      initContainers:
+        - name: installer
+          image: dockerhub.azk8s.cn/jenkins/jenkins:2.190.1
+          command: [ "bash", "/var/jenkins_config/apply_config.sh" ]
+          env:            
+            - name: JENKINS_UC
+              value: https://mirrors.tuna.tsinghua.edu.cn/jenkins/updates/2.190/update-center.json
+            - name: JENKINS_UC_DOWNLOAD
+              value: https://mirrors.tuna.tsinghua.edu.cn/jenkins
+          volumeMounts: 
+            - name: tmp
+              mountPath: /tmp              
+            - name: jenkins-config
+              mountPath: /var/jenkins_config
+            - name: jenkins-jobs
+              mountPath: /var/jenkins_jobs
+            - name: jenkins-home
+              mountPath: /var/jenkins_home              
+            - name: plugins
+              mountPath: /usr/share/jenkins/ref/plugins
+            - name: plugin-dir
+              mountPath: /var/jenkins_plugins
+      containers:
+        - name: jenkins
+          image: dockerhub.azk8s.cn/jenkins/jenkins:2.190.1
+          env:            
+            - name: JAVA_OPTS
+              value: '-Djenkins.install.runSetupWizard=false'
+            - name: JENKINS_OPTS
+              value: '--argumentsRealm.passwd.admin=admin --argumentsRealm.roles.admin=admin'
+            - name: TZ
+              value: Asia/Shanghai
+            - name: JENKINS_UC
+              value: https://mirrors.tuna.tsinghua.edu.cn/jenkins/updates/2.190/update-center.json
+            - name: JENKINS_UC_DOWNLOAD
+              value: https://mirrors.tuna.tsinghua.edu.cn/jenkins
+          ports:
+            - name: http-port
+              containerPort: 8080
+            - name: jnlp-port
+              containerPort: 50000
+          livenessProbe:
+            failureThreshold: 2
+            httpGet: 
+              path: /login
+              port: 8080        
+            initialDelaySeconds: 600
+            periodSeconds: 60
+            timeoutSeconds: 240
+          readinessProbe:
+            httpGet:
+              path: /login
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 3
+            timeoutSeconds: 15
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: 200m
+            limits:
+              memory: 1024Mi
+              cpu: 1
+          volumeMounts: 
+            - mountPath: /tmp
+              name: tmp
+            - name: jenkins-home
+              mountPath: /var/jenkins_home
+              readOnly: false
+            - mountPath: /var/jenkins_config
+              name: jenkins-config
+              readOnly: true
+            - mountPath: /var/jenkins_jobs
+              name: jenkins-jobs
+              readOnly: true
+            - name: plugin-dir
+              mountPath: /usr/share/jenkins/ref/plugins/
+              readOnly: false
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      serviceAccountName: jenkins
+      volumes:
+        - name: plugins
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        - name: plugin-dir
+          emptyDir: {}
+        - name: jenkins-home
+          emptyDir: {}
+        - name: jenkins-config
+          configMap:
+            name: jenkins
+        - name: jenkins-jobs
+          configMap:
+            name: jenkins-jobs
