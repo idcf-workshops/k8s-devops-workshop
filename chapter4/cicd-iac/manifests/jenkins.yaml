@@ -195,7 +195,7 @@ data:
                   </envVars>
                 </org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
                 <org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
-                  <name>maven</name>
+                  <name>dotnet</name>
                   <image>mcr.azk8s.cn/dotnet/core/sdk:2.1-stretch</image>
                   <privileged>true</privileged>
                   <alwaysPullImage>false</alwaysPullImage>
