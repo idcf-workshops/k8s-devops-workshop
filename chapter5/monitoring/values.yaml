@@ -23,41 +23,38 @@ prometheus:
   server:
     image:
       repository: dockerhub.azk8s.cn/prom/prometheus
+      
   serverFiles:
-    alerting_rules.yml: |
+    alerting_rules.yml: 
       groups:
-      - name: frontend
-        rules:
-        - alert: High_CPU_Usage
-          expr: sum (rate (container_cpu_usage_seconds_total{pod=~"^client.*$"}[2m])) / sum (machine_cpu_cores) > 0.1
-          labels:
-            team: frontend
-            severity: critical
-          annotations:
-            summary: "CPU 占用高"
-            description: "client 服务的 CPU 使用达到了惊人的 {{ $value }}"
+        - name: frontend
+          rules:
+          - alert: High_CPU_Usage
+            expr: sum (rate (container_cpu_usage_seconds_total{pod=~"^client.*$"}[2m])) / sum (machine_cpu_cores) > 0.1
+            labels:
+              team: frontend
+              severity: critical
+            annotations:
+              summary: "CPU 占用高"
+              description: "client 服务的 CPU 使用达到了惊人的 {{ $value }}"
 
-    alertmanagerFiles:
-      alertmanager.yml: |
-        global: {}
-
-        receivers:
-          - name: default-receiver
-          - name: gitter_message
-            webhook_configs:
-              - url: 'http://gitter-messager'
-
-        route:
-          group_wait: 10s
-          group_interval: 5m
-          receiver: default-receiver
-          repeat_interval: 3h
-
-          routes: 
-            - receiver: gitter_message
-              match:
-                team: frontend
-
+  alertmanagerFiles:
+    alertmanager.yml:
+      global: {}
+      receivers:
+        - name: default-receiver
+        - name: gitter_message
+          webhook_configs:
+            - url: 'http://gitter-messager'
+      route:
+        group_wait: 10s
+        group_interval: 5m
+        receiver: default-receiver
+        repeat_interval: 3h
+        routes: 
+          - receiver: gitter_message
+            match:
+              team: frontend
 
 grafana:
   image:
