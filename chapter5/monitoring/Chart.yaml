@@ -1,0 +1,15 @@
+apiVersion: v1
+appVersion: 6.7.0
+description: monitoring is a composition of prometheus and grafana
+keywords:
+- prometheus
+- grafana
+name: monitoring
+version: 0.1.0
+dependencies:
+  - name: prometheus
+    version: ^11.0.4
+    repository: https://mirror.azure.cn/kubernetes/charts/
+  - name: grafana
+    version: ^5.0.9
+    repository: https://mirror.azure.cn/kubernetes/charts/

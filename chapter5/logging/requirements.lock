@@ -1,0 +1,12 @@
+dependencies:
+- name: elasticsearch
+  repository: https://mirror.azure.cn/kubernetes/charts/
+  version: 1.32.4
+- name: kibana
+  repository: https://mirror.azure.cn/kubernetes/charts/
+  version: 3.2.6
+- name: fluentd-elasticsearch
+  repository: https://kiwigrid.github.io/
+  version: 2.12.0
+digest: sha256:6b556d26a6d2d39a96c635e1f8600f0770a32cda4474db7ba7da733fbf17f564
+generated: "2020-03-31T23:25:22.076355+08:00"

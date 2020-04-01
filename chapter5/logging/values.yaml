@@ -1,0 +1,40 @@
+
+
+elasticsearch:
+  client:
+    replicas: 1
+  master:
+    replicas: 2
+  data:
+    replicas: 1
+  image:
+    repository: ccr.ccs.tencentyun.com/idcf-k8s-devops/elasticsearch-oss
+    tag: 6.8.6
+  initImage:
+    repository: dockerhub.azk8s.cn/library/busybox
+    pullPolicy: IfNotPresent
+  testFramework:
+    image: dockerhub.azk8s.cn/dduportal/bats
+  sysctlInitContainer:
+    enabled: false
+  cluster:
+    config:
+      node.store.allow_mmap: false
+      index.store.type: niofs
+
+fluentd-elasticsearch:
+  image:
+    repository: quay.azk8s.cn/fluentd_elasticsearch/fluentd
+  awsSigningSidecar:
+      image:
+          repository: dockerhub.azk8s.cn/abutaha/aws-es-proxy
+  elasticsearch:
+    host: logging-elasticsearch-client
+    logstash_prefix: kubernetes
+
+kibana:
+  files:
+    kibana.yml:
+      server.name: kibana
+      server.host: "0"
+      elasticsearch.hosts: http://logging-elasticsearch-client:9200

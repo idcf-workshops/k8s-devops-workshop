@@ -1,0 +1,37 @@
+
+
+prometheus:
+  alertmanager:
+    image:
+      repository: dockerhub.azk8s.cn/prom/alertmanager
+  configmapReload:
+    prometheus:
+      image:
+        repository: dockerhub.azk8s.cn/jimmidyson/configmap-reload
+    alertmanager:
+      image:
+        repository: dockerhub.azk8s.cn/jimmidyson/configmap-reload
+  initChownData:
+    image:
+      repository: dockerhub.azk8s.cn/library/busybox
+  nodeExporter:
+    image:
+      repository: dockerhub.azk8s.cn/prom/node-exporter
+  pushgateway:
+    image:
+      repository: dockerhub.azk8s.cn/prom/pushgateway
+  server:
+    image:
+      repository: dockerhub.azk8s.cn/prom/prometheus
+
+
+
+grafana:
+  image:
+    repository: dockerhub.azk8s.cn/grafana/grafana
+  initChownData:
+    image:
+      repository: dockerhub.azk8s.cn/library/busybox
+  downloadDashboardsImage:
+    repository: dockerhub.azk8s.cn/curlimages/curl
+
