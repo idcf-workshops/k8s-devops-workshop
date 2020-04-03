@@ -111,6 +111,7 @@ spec:
   sessionAffinity: None
   type: ClusterIP
 
+{{- if ne .Values.dnsSuffix '' }}
 ---
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
@@ -131,6 +132,7 @@ spec:
         backend:
           serviceName: {{ .Release.name }}-gogs
           servicePort: 3000
+{{- end }}
 
 ---
 kind: Deployment
@@ -232,8 +234,8 @@ data:
     ROOT = /opt/gogs/data/repositories
 
     [server]
-    ROOT_URL=http://gogs.{{ .Values.dnsSuffix }}
-    SSH_DOMAIN=securegogs.{{ .Values.dnsSuffix }}
+    ROOT_URL=http://{{ .Release.name }}-gogs{{- if ne .Values.dnsSuffix '' }}.{{ .Values.dnsSuffix }}{{- end }}
+    SSH_DOMAIN={{ .Release.name }}-securegogs{{- if ne .Values.dnsSuffix '' }}.{{ .Values.dnsSuffix }}{{- end }}
     START_SSH_SERVER=true
     SSH_LISTEN_PORT=10022
 

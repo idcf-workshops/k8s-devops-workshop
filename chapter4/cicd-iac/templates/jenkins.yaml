@@ -64,6 +64,7 @@ spec:
       app: jenkins
     sessionAffinity: None
 
+{{- if ne .Values.dnsSuffix '' }}
 ---
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
@@ -84,6 +85,8 @@ spec:
         backend:
           serviceName: {{ .Release.name }}-jenkins
           servicePort: 80
+
+{{- end }}
 
 ---
 apiVersion: v1
@@ -605,7 +608,7 @@ data:
     <?xml version='1.1' encoding='UTF-8'?>
     <jenkins.model.JenkinsLocationConfiguration>
       <adminAddress>admin@cluster.local</adminAddress>
-      <jenkinsUrl>http://{{ .Release.name }}-jenkins.{{ .Values.dnsSuffix }}</jenkinsUrl>
+      <jenkinsUrl>http://{{ .Release.name }}-jenkins{{- if ne .Values.dnsSuffix '' }}.{{ .Values.dnsSuffix }}{{- end }}</jenkinsUrl>
     </jenkins.model.JenkinsLocationConfiguration>
 
   plugins.txt:

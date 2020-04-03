@@ -87,8 +87,8 @@ spec:
   sessionAffinity: None
   type: ClusterIP
 
+{{- if ne .Values.dnsSuffix '' }}
 ---
-
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
@@ -108,3 +108,5 @@ spec:
         backend:
           serviceName: {{ .Release.name }}-nexus
           servicePort: 8081
+
+{{- end }}
