@@ -7,7 +7,7 @@ stringData:
   database-password: sonarqube
   database-user: sonarqube
 metadata:
-  name: {{ .Release.name }}-sonardb
+  name: {{ .Release.Name }}-sonardb
   labels:
     app: sonarqube
 type: Opaque
@@ -20,19 +20,19 @@ metadata:
   generation: 1
   labels:
     app: sonarqube
-  name: {{ .Release.name }}-sonardb
+  name: {{ .Release.Name }}-sonardb
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: {{ .Release.name }}-sonardb
+      name: {{ .Release.Name }}-sonardb
       app: sonarqube
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        name: {{ .Release.name }}-sonardb
+        name: {{ .Release.Name }}-sonardb
         app: sonarqube
     spec:
       containers:
@@ -41,17 +41,17 @@ spec:
           valueFrom:
             secretKeyRef:
               key: database-user
-              name: sonardb
+              name: {{ .Release.Name }}-sonardb
         - name: POSTGRESQL_PASSWORD
           valueFrom:
             secretKeyRef:
               key: database-password
-              name: sonardb
+              name: {{ .Release.Name }}-sonardb
         - name: POSTGRESQL_DATABASE
           valueFrom:
             secretKeyRef:
               key: database-name
-              name: sonardb
+              name: {{ .Release.Name }}-sonardb
         image: 'centos/postgresql-96-centos7:latest'
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -103,35 +103,35 @@ metadata:
   generation: 1
   labels:
     app: sonarqube
-  name: {{ .Release.name }}-sonarqube
+  name: {{ .Release.Name }}-sonarqube
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: sonarqube
-      name: {{ .Release.name }}-sonarqube
+      name: {{ .Release.Name }}-sonarqube
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
         app: sonarqube
-        name: {{ .Release.name }}-sonarqube
+        name: {{ .Release.Name }}-sonarqube
     spec:
       containers:
       - env:
         - name: JDBC_URL
-          value: jdbc:postgresql://sonardb:5432/sonarqube-data
+          value: jdbc:postgresql://{{ .Release.Name }}-sonardb:5432/sonarqube-data
         - name: JDBC_USERNAME
           valueFrom:
             secretKeyRef:
               key: database-user
-              name: sonardb
+              name: {{ .Release.Name }}-sonardb
         - name: JDBC_PASSWORD
           valueFrom:
             secretKeyRef:
               key: database-password
-              name: sonardb
+              name: {{ .Release.Name }}-sonardb
         - name: FORCE_AUTHENTICATION
           value: 'false'
         - name: LDAP_REALM
@@ -189,7 +189,7 @@ kind: Service
 metadata:
   labels:
     app: sonarqube
-  name: {{ .Release.name }}-sonardb
+  name: {{ .Release.Name }}-sonardb
 spec:
   ports:
   - name: postgresql
@@ -197,7 +197,7 @@ spec:
     protocol: TCP
     targetPort: 5432
   selector:
-    name: {{ .Release.name }}-sonardb
+    name: {{ .Release.Name }}-sonardb
     app: sonarqube
   sessionAffinity: None
   type: ClusterIP
@@ -209,7 +209,7 @@ kind: Service
 metadata:
   labels:
     app: sonarqube
-  name: {{ .Release.name }}-sonarqube
+  name: {{ .Release.Name }}-sonarqube
 spec:
   ports:
   - name: 9000-tcp
@@ -217,18 +217,18 @@ spec:
     protocol: TCP
     targetPort: 9000
   selector:
-    name: {{ .Release.name }}-sonarqube
+    name: {{ .Release.Name }}-sonarqube
     app: sonarqube
   sessionAffinity: None
   type: ClusterIP
 
-{{- if ne .Values.dnsSuffix '' }}
+{{- if .Values.dnsSuffix}}
 ---
 
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
-  name: {{ .Release.name }}-sonarqube-ingress
+  name: {{ .Release.Name }}-sonarqube-ingress
   labels:
     app: sonarqube
   annotations:
@@ -237,11 +237,11 @@ metadata:
   generation: 1
 spec:
   rules:
-  - host: {{ .Release.name }}-sonarqube.{{ .Values.dnsSuffix }}
+  - host: {{ .Release.Name }}-sonarqube.{{ .Values.dnsSuffix }}
     http:
       paths:
       - path: /
         backend:
-          serviceName: {{ .Release.name }}-sonarqube
+          serviceName: {{ .Release.Name }}-sonarqube
           servicePort: 9000
 {{- end }}

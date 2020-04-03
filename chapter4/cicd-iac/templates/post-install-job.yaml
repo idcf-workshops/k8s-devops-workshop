@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: {{ .Release.name }}-cicd-installer
+  name: {{ .Release.Name }}-cicd-installer
   labels:
     app: installer
 
@@ -11,7 +11,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 groupNames: null
 metadata:
-  name: {{ .Release.name }}_cicd_installer_admin
+  name: {{ .Release.Name }}_cicd_installer_admin
   labels:
     app: installer
 roleRef:
@@ -20,14 +20,14 @@ roleRef:
   name: admin
 subjects:
   - kind: ServiceAccount
-    name: {{ .Release.name }}-cicd-installer
+    name: {{ .Release.Name }}-cicd-installer
 
 
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.name }}-installer-init-script
+  name: {{ .Release.Name }}-installer-init-script
   labels:
     app: installer
 data:
@@ -42,15 +42,15 @@ data:
       kubectl config use-context kube
       kubectl config set-context $(kubectl config current-context) --namespace $(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
 
-      kubectl rollout status deployment/gogs-postgresql
-      kubectl rollout status deployment/gogs
+      kubectl rollout status deployment/{{ .Release.Name }}-gogs-postgresql
+      kubectl rollout status deployment/{{ .Release.Name }}-gogs
 
       sleep 5
       
       GOGS_USER=gogs
       GOGS_PWD=gogs
 
-      _RETURN=$(curl -o /tmp/curl.log -sL -w "%{http_code}" http://gogs:3000/user/sign_up \
+      _RETURN=$(curl -o /tmp/curl.log -sL -w "%{http_code}" http://{{ .Release.Name }}-gogs:3000/user/sign_up \
       --form user_name=$GOGS_USER \
       --form password=$GOGS_PWD \
       --form retype=$GOGS_PWD \
@@ -76,10 +76,10 @@ data:
       }
       EOF
 
-        local _RETURN=$(curl -sL -w "%{http_code}" http://gogs:3000/$GOGS_USER/$_GOGS_REPO_NAME -o /dev/null)
+        local _RETURN=$(curl -sL -w "%{http_code}" http://{{ .Release.Name }}-gogs:3000/$GOGS_USER/$_GOGS_REPO_NAME -o /dev/null)
         if [ $_RETURN == "404" ] ;then
         _RETURN=$(curl -o /tmp/curl.log -sL -w "%{http_code}" -H "Content-Type: application/json" \
-        -u $GOGS_USER:$GOGS_PWD -X POST http://gogs:3000/api/v1/repos/migrate -d @/tmp/data.json)
+        -u $GOGS_USER:$GOGS_PWD -X POST http://{{ .Release.Name }}-gogs:3000/api/v1/repos/migrate -d @/tmp/data.json)
 
             if [ $_RETURN != "201" ] ;then
                 echo "ERROR: Failed to import repo $_REMOTE_REPO"
@@ -94,7 +94,7 @@ data:
       {
           "type": "gogs",
           "config": {
-          "url": "http://jenkins/job/$PROJ/build?token=iDbVmjoqgBXe",
+          "url": "http://{{ .Release.Name }}-jenkins/job/$PROJ/build?token=iDbVmjoqgBXe",
           "content_type": "json"
           },
           "events": [
@@ -105,7 +105,7 @@ data:
       EOF
 
           local _RETURN=$(curl -o /tmp/curl.log -sL -w "%{http_code}" -H "Content-Type: application/json" \
-          -u $GOGS_USER:$GOGS_PWD -X POST http://gogs:3000/api/v1/repos/gogs/$PROJ/hooks -d @/tmp/data.json)
+          -u $GOGS_USER:$GOGS_PWD -X POST http://{{ .Release.Name }}-gogs:3000/api/v1/repos/gogs/$PROJ/hooks -d @/tmp/data.json)
 
           if [ $_RETURN != "201" ] ; then
               echo "ERROR: Failed to set webhook for project $PROJ"
@@ -152,10 +152,10 @@ data:
         curl -v -X POST -H "Content-Type: text/plain" -u "$_NEXUS_USER:$_NEXUS_PWD" "${_NEXUS_URL}/service/rest/v1/script/reset_password/run"
       }
 
-      kubectl rollout status deployment/nexus
+      kubectl rollout status deployment/{{ .Release.Name }}-nexus
 
-      disable_outreach admin admin123 'http://nexus:8081'
-      change_admin_password admin admin123 'http://nexus:8081'
+      disable_outreach admin admin123 'http://{{ .Release.Name }}-nexus:8081'
+      change_admin_password admin admin123 'http://{{ .Release.Name }}-nexus:8081'
 
       echo -e "\e[1;32mInstallation has completed successfully.\e[0m"
 
@@ -165,16 +165,19 @@ data:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ .Release.name }}-cicd-installer
+  name: {{ .Release.Name }}-cicd-installer
   labels:
     app: installer
+  annotations:
+    helm.sh/hook: post-install
+    helm.sh/hook-delete-policy: "before-hook-creation,hook-succeeded"
 spec:
   activeDeadlineSeconds: 600
   completions: 1
   parallelism: 1
   template:
     spec:
-      serviceAccountName: {{ .Release.name }}-cicd-installer
+      serviceAccountName: {{ .Release.Name }}-cicd-installer
       restartPolicy: Never
       containers:
         - name: cicd-installer-job
@@ -188,4 +191,4 @@ spec:
       volumes:
         - name: init-script
           configMap:
-            name: {{ .Release.name }}-installer-init-script
+            name: {{ .Release.Name }}-installer-init-script

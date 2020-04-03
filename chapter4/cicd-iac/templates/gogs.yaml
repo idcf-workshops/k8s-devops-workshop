@@ -3,7 +3,7 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: {{ .Release.name }}-gogs-postgresql
+  name: {{ .Release.Name }}-gogs-postgresql
   labels:
     app: gogs
 spec:
@@ -12,7 +12,7 @@ spec:
     port: 5432
     targetPort: 5432
   selector:
-    name: {{ .Release.name }}-gogs-postgresql
+    name: {{ .Release.Name }}-gogs-postgresql
     app: gogs
 
 ---
@@ -20,7 +20,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.name }}-gogs-postgresql
+  name: {{ .Release.Name }}-gogs-postgresql
   labels:
     app: gogs
   annotations:
@@ -29,7 +29,7 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      name: {{ .Release.name }}-gogs-postgresql
+      name: {{ .Release.Name }}-gogs-postgresql
       app: gogs
   strategy:
     type: Recreate
@@ -37,7 +37,7 @@ spec:
     metadata:
       labels:
         app: gogs
-        name: {{ .Release.name }}-gogs-postgresql
+        name: {{ .Release.Name }}-gogs-postgresql
     spec:
       containers:
       - env:
@@ -89,10 +89,7 @@ spec:
 kind: Service
 apiVersion: v1
 metadata:
-  name: {{ .Release.name }}-gogs
-  annotations:
-    description: The Gogs server's http port
-    service.alpha.openshift.io/dependencies: '[{"name":"gogs-postgresql","namespace":"","kind":"Service"}]'
+  name: {{ .Release.Name }}-gogs
   labels:
     app: gogs
 spec:
@@ -106,17 +103,17 @@ spec:
     protocol: TCP
     targetPort: 10022
   selector:
-      name: {{ .Release.name }}-gogs
+      name: {{ .Release.Name }}-gogs
       app: gogs
   sessionAffinity: None
   type: ClusterIP
 
-{{- if ne .Values.dnsSuffix '' }}
+{{- if .Values.dnsSuffix }}
 ---
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
-  name: {{ .Release.name }}-gogs-ingress
+  name: {{ .Release.Name }}-gogs-ingress
   labels:
     app: gogs
   annotations:
@@ -125,12 +122,12 @@ metadata:
   generation: 1
 spec:
   rules:
-  - host: gogs.{{ .Values.dnsSuffix }}
+  - host: {{ .Release.Name }}-gogs.{{ .Values.dnsSuffix }}
     http:
       paths:
       - path: /
         backend:
-          serviceName: {{ .Release.name }}-gogs
+          serviceName: {{ .Release.Name }}-gogs
           servicePort: 3000
 {{- end }}
 
@@ -138,7 +135,7 @@ spec:
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: {{ .Release.name }}-gogs
+  name: {{ .Release.Name }}-gogs
   labels:
     app: gogs
 spec:
@@ -146,12 +143,12 @@ spec:
   selector:
     matchLabels:
       app: gogs
-      name: {{ .Release.name }}-gogs
+      name: {{ .Release.Name }}-gogs
   template:
     metadata:
       labels:
         app: gogs
-        name: {{ .Release.name }}-gogs
+        name: {{ .Release.Name }}-gogs
     spec:
       containers:
       - image: 'openshiftdemos/gogs:0.11.34'
@@ -205,7 +202,7 @@ spec:
           emptyDir: {}
         - name: gogs-config
           configMap:
-            name: {{ .Release.name }}-gogs-config
+            name: {{ .Release.Name }}-gogs-config
             items:
               - key: app.ini
                 path: app.ini
@@ -215,7 +212,7 @@ spec:
 kind: ConfigMap
 apiVersion: v1
 metadata:
-  name: {{ .Release.name }}-gogs-config
+  name: {{ .Release.Name }}-gogs-config
   labels:
     app: gogs
 data:
@@ -225,7 +222,7 @@ data:
 
     [database]
     DB_TYPE  = postgres
-    HOST     = gogs-postgresql:5432
+    HOST     = {{ .Release.Name }}-gogs-postgresql:5432
     NAME     = gogs-data
     USER     = gogs
     PASSWD   = gogs
@@ -234,8 +231,8 @@ data:
     ROOT = /opt/gogs/data/repositories
 
     [server]
-    ROOT_URL=http://{{ .Release.name }}-gogs{{- if ne .Values.dnsSuffix '' }}.{{ .Values.dnsSuffix }}{{- end }}
-    SSH_DOMAIN={{ .Release.name }}-securegogs{{- if ne .Values.dnsSuffix '' }}.{{ .Values.dnsSuffix }}{{- end }}
+    ROOT_URL=http://{{ .Release.Name }}-gogs{{- if .Values.dnsSuffix }}.{{ .Values.dnsSuffix }}{{- end }}
+    SSH_DOMAIN={{ .Release.Name }}-securegogs{{- if .Values.dnsSuffix }}.{{ .Values.dnsSuffix }}{{- end }}
     START_SSH_SERVER=true
     SSH_LISTEN_PORT=10022
 
