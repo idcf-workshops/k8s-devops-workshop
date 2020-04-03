@@ -3,27 +3,27 @@
 prometheus:
   alertmanager:
     image:
-      repository: dockerhub.azk8s.cn/prom/alertmanager
+      repository: prom/alertmanager
   configmapReload:
     prometheus:
       image:
-        repository: dockerhub.azk8s.cn/jimmidyson/configmap-reload
+        repository: jimmidyson/configmap-reload
     alertmanager:
       image:
-        repository: dockerhub.azk8s.cn/jimmidyson/configmap-reload
+        repository: jimmidyson/configmap-reload
   initChownData:
     image:
-      repository: dockerhub.azk8s.cn/library/busybox
+      repository: busybox
   nodeExporter:
     image:
-      repository: dockerhub.azk8s.cn/prom/node-exporter
+      repository: prom/node-exporter
   pushgateway:
     image:
-      repository: dockerhub.azk8s.cn/prom/pushgateway
+      repository: prom/pushgateway
   server:
     image:
-      repository: dockerhub.azk8s.cn/prom/prometheus
-      
+      repository: prom/prometheus
+
   serverFiles:
     alerting_rules.yml: 
       groups:
@@ -58,10 +58,10 @@ prometheus:
 
 grafana:
   image:
-    repository: dockerhub.azk8s.cn/grafana/grafana
+    repository: grafana/grafana
   initChownData:
     image:
-      repository: dockerhub.azk8s.cn/library/busybox
+      repository: busybox
   downloadDashboardsImage:
-    repository: dockerhub.azk8s.cn/curlimages/curl
+    repository: curlimages/curl
 

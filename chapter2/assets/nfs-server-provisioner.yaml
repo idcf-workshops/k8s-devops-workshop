@@ -1,5 +1,5 @@
 # helm fetch stable/nfs-server-provisioner
-# helm template ./nfs-server-provisioner-0.3.0.tgz --name idcf --set='image.repository=quay.azk8s.cn/kubernetes_incubator/nfs-provisioner,persistence.enabled=true,persistence.storageClass=cbs,persistence.size=10Gi,resources.limits.cpu=200m,storageClass.mountOptions={noatime}' > nfs.yaml
+# helm template ./nfs-server-provisioner-0.3.0.tgz --name idcf --set='image.repository=quay.io/kubernetes_incubator/nfs-provisioner,persistence.enabled=true,persistence.storageClass=cbs,persistence.size=10Gi,resources.limits.cpu=200m,storageClass.mountOptions={noatime}' > nfs.yaml
 # kubectl apply -f nfs.yaml
 
 
@@ -159,7 +159,7 @@ spec:
       serviceAccountName: idcf-nfs-server-provisioner
       containers:
         - name: nfs-server-provisioner
-          image: "quay.azk8s.cn/kubernetes_incubator/nfs-provisioner:v2.2.1-k8s1.12"
+          image: "quay.io/kubernetes_incubator/nfs-provisioner:v2.2.1-k8s1.12"
           imagePullPolicy: IfNotPresent
           ports:
             - name: nfs

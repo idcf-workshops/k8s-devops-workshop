@@ -23,7 +23,7 @@ spec:
         env:
           - name: CONTEXT_PATH
             value: /
-        image: 'dockerhub.azk8s.cn/sonatype/nexus3:3.13.0'
+        image: 'sonatype/nexus3:3.13.0'
         imagePullPolicy: IfNotPresent
         livenessProbe:
           exec:

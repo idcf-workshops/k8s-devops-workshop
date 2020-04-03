@@ -54,7 +54,7 @@ spec:
           value: '12MB'
         - name: POSTGRESQL_ADMIN_PASSWORD
           value: gogs
-        image: 'dockerhub.azk8s.cn/centos/postgresql-96-centos7:latest'
+        image: 'centos/postgresql-96-centos7:latest'
         livenessProbe:
           initialDelaySeconds: 30
           tcpSocket:
@@ -153,7 +153,7 @@ spec:
         deploymentconfig: gogs
     spec:
       containers:
-      - image: 'dockerhub.azk8s.cn/openshiftdemos/gogs:0.11.34'
+      - image: 'openshiftdemos/gogs:0.11.34'
         imagePullPolicy: Always
         name: gogs
         ports:

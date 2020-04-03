@@ -15,7 +15,7 @@ helm install monitoring -n monitoring ./monitoring
 
 
 # curl -O -L https://mirror.azure.cn/kubernetes/charts-incubator/metrics-server-2.0.4.tgz && tar -zxf metrics-server-2.0.4.tgz && rm metrics-server-2.0.4.tgz
-# helm template metrics-server ./metrics-server --set 'image.repository=gcr.azk8s.cn/google_containers/metrics-server-amd64,args={--kubelet-insecure-tls}' -n kube-system | kubectl apply -f -
+# helm template metrics-server ./metrics-server --set 'image.repository=gcr.io/google_containers/metrics-server-amd64,args={--kubelet-insecure-tls}' -n kube-system | kubectl apply -f -
 
 
 # Dashboard: Cluster Monitoring for Kubernetes

@@ -161,7 +161,7 @@ data:
               <containers>
                 <org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
                   <name>jnlp</name>
-                  <image>dockerhub.azk8s.cn/jenkins/jnlp-slave:alpine</image>
+                  <image>jenkins/jnlp-slave:alpine</image>
                   <privileged>true</privileged>
                   <alwaysPullImage>false</alwaysPullImage>
                   <workingDir>/home/jenkins/agent</workingDir>
@@ -196,7 +196,7 @@ data:
                 </org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
                 <org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
                   <name>dotnet</name>
-                  <image>mcr.azk8s.cn/dotnet/core/sdk:2.1-stretch</image>
+                  <image>mcr.microsoft.com/dotnet/core/sdk:2.1-stretch</image>
                   <privileged>true</privileged>
                   <alwaysPullImage>false</alwaysPullImage>
                   <workingDir>/home/jenkins/agent</workingDir>
@@ -252,7 +252,7 @@ data:
               <containers>
                 <org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
                   <name>jnlp</name>
-                  <image>dockerhub.azk8s.cn/jenkins/jnlp-slave:alpine</image>
+                  <image>jenkins/jnlp-slave:alpine</image>
                   <privileged>true</privileged>
                   <alwaysPullImage>false</alwaysPullImage>
                   <workingDir>/home/jenkins/agent</workingDir>
@@ -287,7 +287,7 @@ data:
                 </org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
                 <org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
                   <name>maven</name>
-                  <image>dockerhub.azk8s.cn/library/maven:3.5.2-jdk-8-alpine</image>
+                  <image>maven:3.5.2-jdk-8-alpine</image>
                   <privileged>true</privileged>
                   <alwaysPullImage>false</alwaysPullImage>
                   <workingDir>/home/jenkins/agent</workingDir>
@@ -343,7 +343,7 @@ data:
                 <containers>
                   <org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
                     <name>jnlp</name>
-                    <image>dockerhub.azk8s.cn/jenkins/jnlp-slave:alpine</image>
+                    <image>jenkins/jnlp-slave:alpine</image>
                     <privileged>true</privileged>
                     <alwaysPullImage>false</alwaysPullImage>
                     <workingDir>/home/jenkins/agent</workingDir>
@@ -378,7 +378,7 @@ data:
                   </org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
                   <org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
                     <name>nodejs</name>
-                    <image>dockerhub.azk8s.cn/library/node:lts-alpine</image>
+                    <image>node:lts-alpine</image>
                     <privileged>true</privileged>
                     <alwaysPullImage>false</alwaysPullImage>
                     <workingDir>/home/jenkins/agent</workingDir>
@@ -440,7 +440,7 @@ data:
               <containers>
                 <org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
                   <name>jnlp</name>
-                  <image>dockerhub.azk8s.cn/jenkins/jnlp-slave:alpine</image>
+                  <image>jenkins/jnlp-slave:alpine</image>
                   <privileged>true</privileged>
                   <alwaysPullImage>false</alwaysPullImage>
                   <workingDir>/home/jenkins/agent</workingDir>
@@ -475,7 +475,7 @@ data:
                 </org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
                 <org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
                   <name>docker</name>
-                  <image>dockerhub.azk8s.cn/jijiechen/docker-kubectl-helm:idcf</image>
+                  <image>jijiechen/docker-kubectl-helm:idcf</image>
                   <privileged>true</privileged>
                   <alwaysPullImage>false</alwaysPullImage>
                   <workingDir>/home/jenkins/agent</workingDir>
@@ -699,7 +699,7 @@ spec:
     spec:
       initContainers:
         - name: installer
-          image: dockerhub.azk8s.cn/jenkins/jenkins:2.190.1
+          image: jenkins/jenkins:2.190.1
           command: [ "bash", "/var/jenkins_config/apply_config.sh" ]
           env:            
             - name: JENKINS_UC
@@ -721,7 +721,7 @@ spec:
               mountPath: /var/jenkins_plugins
       containers:
         - name: jenkins
-          image: dockerhub.azk8s.cn/jenkins/jenkins:2.190.1
+          image: jenkins/jenkins:2.190.1
           env:            
             - name: JAVA_OPTS
               value: '-Djenkins.install.runSetupWizard=false'

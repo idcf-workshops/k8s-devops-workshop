@@ -52,7 +52,7 @@ spec:
             secretKeyRef:
               key: database-name
               name: sonardb
-        image: 'dockerhub.azk8s.cn/centos/postgresql-96-centos7:latest'
+        image: 'centos/postgresql-96-centos7:latest'
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -136,7 +136,7 @@ spec:
           value: 'false'
         - name: LDAP_REALM
           value: ''
-        image: 'dockerhub.azk8s.cn/siamaksade/sonarqube:latest'
+        image: 'siamaksade/sonarqube:latest'
         imagePullPolicy: Always
         livenessProbe:
           failureThreshold: 3

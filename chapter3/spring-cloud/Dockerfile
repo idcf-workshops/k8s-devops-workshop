@@ -1,4 +1,4 @@
-FROM dockerhub.azk8s.cn/library/openjdk:8-jre-alpine
+FROM openjdk:8-jre-alpine
 
 ARG JARFILENAME
 ENV JARFILE=$JARFILENAME

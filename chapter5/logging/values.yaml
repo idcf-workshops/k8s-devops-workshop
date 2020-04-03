@@ -11,10 +11,10 @@ elasticsearch:
     repository: ccr.ccs.tencentyun.com/idcf-k8s-devops/elasticsearch-oss
     tag: 6.8.6
   initImage:
-    repository: dockerhub.azk8s.cn/library/busybox
+    repository: busybox
     pullPolicy: IfNotPresent
   testFramework:
-    image: dockerhub.azk8s.cn/dduportal/bats
+    image: dduportal/bats
   sysctlInitContainer:
     enabled: false
   cluster:
@@ -24,10 +24,10 @@ elasticsearch:
 
 fluentd-elasticsearch:
   image:
-    repository: quay.azk8s.cn/fluentd_elasticsearch/fluentd
+    repository: quay.io/fluentd_elasticsearch/fluentd
   awsSigningSidecar:
       image:
-          repository: dockerhub.azk8s.cn/abutaha/aws-es-proxy
+          repository: abutaha/aws-es-proxy
   elasticsearch:
     host: logging-elasticsearch-client
     logstash_prefix: kubernetes

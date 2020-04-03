@@ -178,7 +178,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: cicd-installer-job
-          image: dockerhub.azk8s.cn/jijiechen/kubectl:1.16.0
+          image: jijiechen/kubectl:1.16.0
           volumeMounts:            
             - name: init-script
               mountPath: /var/init-script

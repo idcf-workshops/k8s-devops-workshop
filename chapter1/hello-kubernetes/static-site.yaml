@@ -7,7 +7,7 @@ metadata:
 spec:
   initContainers:
     - name: git
-      image: dockerhub.azk8s.cn/alpine/git:v2.24.1
+      image: alpine/git:v2.24.1
       workingDir: /website
       command: ["git"]
       args: ["clone", "--single-branch", "--branch", "master", "https://gitee.com/idcf-devops-on-kubernetes/static-site.git", "."]
@@ -16,7 +16,7 @@ spec:
           mountPath: /website
   containers:
     - name: nginx
-      image: dockerhub.azk8s.cn/library/nginx:1.17.9-alpine
+      image: nginx:1.17.9-alpine
       command: ["/bin/sh"]
       args: ["-c", "sed -i 's:location / {:absolute_redirect off;\\nlocation / {:' /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"]
       ports:
