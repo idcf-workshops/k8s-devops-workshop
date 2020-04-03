@@ -1,0 +1,34 @@
+CICD 环境已安装完成。
+
+请使用以下方式访问各个服务：
+
+* 在集群内部：
+
+  Jenkins: {{ .Release.Name }}-jenkins.{{ .Release.Namespace }}.svc
+  Gogs: {{ .Release.Name }}-gogs.{{ .Release.Namespace }}.svc
+  Nexus: {{ .Release.Name }}-nexus.{{ .Release.Namespace }}.svc
+  Sonarqube: {{ .Release.Name }}-sonarqube.{{ .Release.Namespace }}.svc
+
+* 在集群外部：
+
+{{- if .Values.dnsSuffix }}
+  Jenkins: {{ .Release.Name }}-jenkins.{{ .Values.dnsSuffix }}
+  Gogs: {{ .Release.Name }}-gogs.{{ .Values.dnsSuffix }}
+  Nexus: {{ .Release.Name }}-nexus.{{ .Values.dnsSuffix }}
+  Sonarqube: {{ .Release.Name }}-sonarqube.{{ .Values.dnsSuffix }}
+
+{{- else }}
+  1. 请运行此命令以获取集群节点 IP
+  kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}"
+
+  2. 请运行此命令分别获取各个服务的端口
+  Jenkins: kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services/{{ .Release.Name }}-jenkins
+  Gogs: kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services/{{ .Release.Name }}-gogs
+  Nexus: kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services/{{ .Release.Name }}-nexus
+  Sonarqube: kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services/{{ .Release.Name }}-sonarqube
+
+  3. 再使用 <节点IP>:<端口> 的方式来访问，例如 192.168.12.35:31208
+
+{{- end }}
+
+另请注意，当前环境暂时不支持数据持久化保存。

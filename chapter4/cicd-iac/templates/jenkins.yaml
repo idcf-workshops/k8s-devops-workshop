@@ -52,10 +52,13 @@ metadata:
   labels:
     app: jenkins
 spec:
+    {{- if .Values.dnsSuffix }}
     type: ClusterIP
+    {{- else }}
+    type: NodePort
+    {{- end }}
     ports:
       - name: web
-        nodePort: 0
         port: 80
         protocol: TCP
         targetPort: 8080

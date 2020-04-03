@@ -220,7 +220,11 @@ spec:
     name: {{ .Release.Name }}-sonarqube
     app: sonarqube
   sessionAffinity: None
+  {{- if .Values.dnsSuffix }}
   type: ClusterIP
+  {{- else }}
+  type: NodePort
+  {{- end }}
 
 {{- if .Values.dnsSuffix}}
 ---

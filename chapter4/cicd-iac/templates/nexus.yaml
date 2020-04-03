@@ -85,7 +85,11 @@ spec:
     app: nexus
     name: {{ .Release.Name }}-nexus
   sessionAffinity: None
+  {{- if .Values.dnsSuffix }}
   type: ClusterIP
+  {{- else }}
+  type: NodePort
+  {{- end }}
 
 {{- if .Values.dnsSuffix }}
 ---
