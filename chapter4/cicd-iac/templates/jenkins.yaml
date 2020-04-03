@@ -75,7 +75,7 @@ metadata:
   generation: 1
 spec:
   rules:
-  - host: jenkins.$$dns_suffix
+  - host: jenkins.{{ .Values.dnsSuffix }}
     http:
       paths:
       - path: /
@@ -190,7 +190,7 @@ data:
                     </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                     <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                       <key>DNS_SUFFIX</key>
-                      <value>$$dns_suffix</value>
+                      <value>{{ .Values.dnsSuffix }}</value>
                     </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                   </envVars>
                 </org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
@@ -225,7 +225,7 @@ data:
                     </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                     <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                       <key>DNS_SUFFIX</key>
-                      <value>$$dns_suffix</value>
+                      <value>{{ .Values.dnsSuffix }}</value>
                     </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                   </envVars>
                 </org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
@@ -281,7 +281,7 @@ data:
                     </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                     <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                       <key>DNS_SUFFIX</key>
-                      <value>$$dns_suffix</value>
+                      <value>{{ .Values.dnsSuffix }}</value>
                     </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                   </envVars>
                 </org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
@@ -316,7 +316,7 @@ data:
                     </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                     <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                       <key>DNS_SUFFIX</key>
-                      <value>$$dns_suffix</value>
+                      <value>{{ .Values.dnsSuffix }}</value>
                     </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                   </envVars>
                 </org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
@@ -372,7 +372,7 @@ data:
                       </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                       <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                         <key>DNS_SUFFIX</key>
-                        <value>$$dns_suffix</value>
+                        <value>{{ .Values.dnsSuffix }}</value>
                       </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                     </envVars>
                   </org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
@@ -407,7 +407,7 @@ data:
                       </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                       <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                         <key>DNS_SUFFIX</key>
-                        <value>$$dns_suffix</value>
+                        <value>{{ .Values.dnsSuffix }}</value>
                       </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                     </envVars>
                   </org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
@@ -469,7 +469,7 @@ data:
                     </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                     <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                       <key>DNS_SUFFIX</key>
-                      <value>$$dns_suffix</value>
+                      <value>{{ .Values.dnsSuffix }}</value>
                     </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                   </envVars>
                 </org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
@@ -504,7 +504,11 @@ data:
                     </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                     <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                       <key>DNS_SUFFIX</key>
-                      <value>$$dns_suffix</value>
+                      <value>{{ .Values.dnsSuffix }}</value>
+                    </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
+                    <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
+                      <key>IMAGE_PUSH_REGISTRY</key>
+                      <value>{{ .Values.imagePushRegistry.location }}</value>
                     </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                   </envVars>
                 </org.csanchez.jenkins.plugins.kubernetes.ContainerTemplate>
@@ -553,7 +557,7 @@ data:
               </default>
               <int>1</int>
               <string>DNS_SUFFIX</string>
-              <string>$$dns_suffix</string>
+              <string>{{ .Values.dnsSuffix }}</string>
             </tree-map>
           </envVars>
         </hudson.slaves.EnvironmentVariablesNodeProperty>
@@ -580,9 +584,9 @@ data:
     import com.cloudbees.plugins.credentials.domains.*;
 
     def credId        = "dockerRegistryCredential"
-    def username      = "$$docker_registry_username"
-    def password      = "$$docker_registry_password"
-    def description   = "image push credential"
+    def username      = "{{ .Values.imagePushRegistry.username }}"
+    def password      = "{{ .Values.imagePushRegistry.password }}"
+    def description   = "Image push credential for {{ .Values.imagePushRegistry.location }}"
 
     credential = (Credentials) new UsernamePasswordCredentialsImpl(
         CredentialsScope.GLOBAL,  // Scope
@@ -599,7 +603,7 @@ data:
     <?xml version='1.1' encoding='UTF-8'?>
     <jenkins.model.JenkinsLocationConfiguration>
       <adminAddress>admin@cluster.local</adminAddress>
-      <jenkinsUrl>http://jenkins.$$dns_suffix</jenkinsUrl>
+      <jenkinsUrl>http://jenkins.{{ .Values.dnsSuffix }}</jenkinsUrl>
     </jenkins.model.JenkinsLocationConfiguration>
 
   plugins.txt:

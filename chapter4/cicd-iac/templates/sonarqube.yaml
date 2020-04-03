@@ -237,7 +237,7 @@ metadata:
   generation: 1
 spec:
   rules:
-  - host: sonarqube.$$dns_suffix
+  - host: sonarqube.{{ .Values.dnsSuffix }}
     http:
       paths:
       - path: /

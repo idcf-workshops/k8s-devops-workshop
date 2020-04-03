@@ -100,7 +100,7 @@ metadata:
   generation: 1
 spec:
   rules:
-  - host: nexus.$$dns_suffix
+  - host: nexus.{{ .Values.dnsSuffix }}
     http:
       paths:
       - path: /
