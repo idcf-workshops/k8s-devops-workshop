@@ -3,25 +3,24 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: gogs-postgresql
+  name: {{ .Release.name }}-gogs-postgresql
   labels:
     app: gogs
-  annotations:
-    description: Exposes the database server
 spec:
   ports:
   - name: postgresql
     port: 5432
     targetPort: 5432
   selector:
-    name: gogs-postgresql
+    name: {{ .Release.name }}-gogs-postgresql
+    app: gogs
 
 ---
 
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: gogs-postgresql
+  name: {{ .Release.name }}-gogs-postgresql
   labels:
     app: gogs
   annotations:
@@ -30,7 +29,7 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      name: gogs-postgresql
+      name: {{ .Release.name }}-gogs-postgresql
       app: gogs
   strategy:
     type: Recreate
@@ -38,7 +37,7 @@ spec:
     metadata:
       labels:
         app: gogs
-        name: gogs-postgresql
+        name: {{ .Release.name }}-gogs-postgresql
     spec:
       containers:
       - env:
@@ -90,7 +89,7 @@ spec:
 kind: Service
 apiVersion: v1
 metadata:
-  name: gogs
+  name: {{ .Release.name }}-gogs
   annotations:
     description: The Gogs server's http port
     service.alpha.openshift.io/dependencies: '[{"name":"gogs-postgresql","namespace":"","kind":"Service"}]'
@@ -107,8 +106,8 @@ spec:
     protocol: TCP
     targetPort: 10022
   selector:
-    app: gogs 
-    deploymentconfig: gogs
+      name: {{ .Release.name }}-gogs
+      app: gogs
   sessionAffinity: None
   type: ClusterIP
 
@@ -116,7 +115,7 @@ spec:
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
-  name: gogs-ingress
+  name: {{ .Release.name }}-gogs-ingress
   labels:
     app: gogs
   annotations:
@@ -130,14 +129,14 @@ spec:
       paths:
       - path: /
         backend:
-          serviceName: gogs
+          serviceName: {{ .Release.name }}-gogs
           servicePort: 3000
 
 ---
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: gogs
+  name: {{ .Release.name }}-gogs
   labels:
     app: gogs
 spec:
@@ -145,12 +144,12 @@ spec:
   selector:
     matchLabels:
       app: gogs
-      deploymentconfig: gogs
+      name: {{ .Release.name }}-gogs
   template:
     metadata:
       labels:
         app: gogs
-        deploymentconfig: gogs
+        name: {{ .Release.name }}-gogs
     spec:
       containers:
       - image: 'openshiftdemos/gogs:0.11.34'
@@ -204,7 +203,7 @@ spec:
           emptyDir: {}
         - name: gogs-config
           configMap:
-            name: gogs-config
+            name: {{ .Release.name }}-gogs-config
             items:
               - key: app.ini
                 path: app.ini
@@ -214,7 +213,7 @@ spec:
 kind: ConfigMap
 apiVersion: v1
 metadata:
-  name: gogs-config
+  name: {{ .Release.name }}-gogs-config
   labels:
     app: gogs
 data:

@@ -3,7 +3,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nexus
+  name: {{ .Release.name }}-nexus
   labels:
     app: nexus
 spec:
@@ -11,12 +11,12 @@ spec:
   selector:
     matchLabels:
       app: nexus
-      deploymentconfig: nexus
+      name: {{ .Release.name }}-nexus
   template:
     metadata:
       labels:
         app: nexus
-        deploymentconfig: nexus
+        name: {{ .Release.name }}-nexus
     spec:
       containers:
       - name: nexus
@@ -74,7 +74,7 @@ kind: Service
 metadata:
   labels:
     app: nexus
-  name: nexus
+  name: {{ .Release.name }}-nexus
 spec:
   ports:
   - name: 8081-tcp
@@ -82,7 +82,8 @@ spec:
     protocol: TCP
     targetPort: 8081
   selector:
-    deploymentconfig: nexus
+    app: nexus
+    name: {{ .Release.name }}-nexus
   sessionAffinity: None
   type: ClusterIP
 
@@ -91,7 +92,7 @@ spec:
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
-  name: nexus-ingress
+  name: {{ .Release.name }}-nexus-ingress
   labels:
     app: nexus
   annotations:
@@ -100,10 +101,10 @@ metadata:
   generation: 1
 spec:
   rules:
-  - host: nexus.{{ .Values.dnsSuffix }}
+  - host: {{ .Release.name }}-nexus.{{ .Values.dnsSuffix }}
     http:
       paths:
       - path: /
         backend:
-          serviceName: nexus
+          serviceName: {{ .Release.name }}-nexus
           servicePort: 8081

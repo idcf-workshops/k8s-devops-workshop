@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: jenkins
+  name: {{ .Release.name }}-jenkins
   labels:
     app: jenkins
 
@@ -11,7 +11,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 groupNames: null
 metadata:
-  name: jenkins_edit
+  name: {{ .Release.name }}_jenkins_edit
   labels:
     app: jenkins
 roleRef:
@@ -20,14 +20,14 @@ roleRef:
   name: edit
 subjects:
   - kind: ServiceAccount
-    name: jenkins
+    name: {{ .Release.name }}-jenkins
 
 ---
 
 apiVersion: v1
 kind: Service
 metadata:
-  name: jenkins-jnlp
+  name: {{ .Release.name }}-jenkins-jnlp
   labels:
     app: jenkins
 spec:
@@ -39,7 +39,8 @@ spec:
         protocol: TCP
         targetPort: 50000
     selector:
-      name: jenkins
+      name: {{ .Release.name }}-jenkins
+      app: jenkins
     sessionAffinity: None
 
 ---
@@ -47,7 +48,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: jenkins
+  name: {{ .Release.name }}-jenkins
   labels:
     app: jenkins
 spec:
@@ -59,14 +60,15 @@ spec:
         protocol: TCP
         targetPort: 8080
     selector:
-      name: jenkins
+      name: {{ .Release.name }}-jenkins
+      app: jenkins
     sessionAffinity: None
 
 ---
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
-  name: jenkins-ingress
+  name: {{ .Release.name }}-jenkins-ingress
   labels:
     app: jenkins
   annotations:
@@ -75,19 +77,19 @@ metadata:
   generation: 1
 spec:
   rules:
-  - host: jenkins.{{ .Values.dnsSuffix }}
+  - host: {{ .Release.name }}-jenkins.{{ .Values.dnsSuffix }}
     http:
       paths:
       - path: /
         backend:
-          serviceName: jenkins
+          serviceName: {{ .Release.name }}-jenkins
           servicePort: 80
 
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: jenkins-jobs
+  name: {{ .Release.name }}-jenkins-jobs
   labels:
     app: jenkins
 data:
@@ -119,7 +121,7 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: jenkins
+  name: {{ .Release.name }}-jenkins
   labels:
     app: jenkins
 data:
@@ -151,7 +153,7 @@ data:
               <instanceCap>2147483647</instanceCap>
               <idleMinutes>10</idleMinutes>
               <label>dotnet</label>
-              <serviceAccount>jenkins</serviceAccount>
+              <serviceAccount>{{ .Release.name }}-jenkins</serviceAccount>
               <nodeSelector></nodeSelector>
               <nodeUsageMode>NORMAL</nodeUsageMode>
               <customWorkspaceVolumeEnabled>true</customWorkspaceVolumeEnabled>
@@ -178,11 +180,11 @@ data:
                   <envVars>
                     <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                       <key>JENKINS_URL</key>
-                      <value>http://jenkins</value>
+                      <value>http://{{ .Release.name }}-jenkins</value>
                     </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                     <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                       <key>JENKINS_TUNNEL</key>
-                      <value>jenkins-jnlp:50000</value>
+                      <value>{{ .Release.name }}-jenkins-jnlp:50000</value>
                     </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                     <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                       <key>TZ</key>
@@ -213,11 +215,11 @@ data:
                   <envVars>
                     <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                       <key>JENKINS_URL</key>
-                      <value>http://jenkins</value>
+                      <value>http://{{ .Release.name }}-jenkins</value>
                     </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                     <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                       <key>JENKINS_TUNNEL</key>
-                      <value>jenkins-jnlp:50000</value>
+                      <value>{{ .Release.name }}-jenkins-jnlp:50000</value>
                     </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                     <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                       <key>TZ</key>
@@ -242,7 +244,7 @@ data:
               <instanceCap>2147483647</instanceCap>
               <idleMinutes>10</idleMinutes>
               <label>maven</label>
-              <serviceAccount>jenkins</serviceAccount>
+              <serviceAccount>{{ .Release.name }}-jenkins</serviceAccount>
               <nodeSelector></nodeSelector>
               <nodeUsageMode>NORMAL</nodeUsageMode>
               <customWorkspaceVolumeEnabled>true</customWorkspaceVolumeEnabled>
@@ -269,11 +271,11 @@ data:
                   <envVars>
                     <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                       <key>JENKINS_URL</key>
-                      <value>http://jenkins</value>
+                      <value>http://{{ .Release.name }}-jenkins</value>
                     </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                     <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                       <key>JENKINS_TUNNEL</key>
-                      <value>jenkins-jnlp:50000</value>
+                      <value>{{ .Release.name }}-jenkins-jnlp:50000</value>
                     </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                     <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                       <key>TZ</key>
@@ -304,11 +306,11 @@ data:
                   <envVars>
                     <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                       <key>JENKINS_URL</key>
-                      <value>http://jenkins</value>
+                      <value>http://{{ .Release.name }}-jenkins</value>
                     </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                     <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                       <key>JENKINS_TUNNEL</key>
-                      <value>jenkins-jnlp:50000</value>
+                      <value>{{ .Release.name }}-jenkins-jnlp:50000</value>
                     </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                     <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                       <key>TZ</key>
@@ -333,7 +335,7 @@ data:
                 <instanceCap>2147483647</instanceCap>
                 <idleMinutes>10</idleMinutes>
                 <label>nodejs</label>
-                <serviceAccount>jenkins</serviceAccount>
+                <serviceAccount>{{ .Release.name }}-jenkins</serviceAccount>
                 <nodeSelector></nodeSelector>
                 <nodeUsageMode>NORMAL</nodeUsageMode>
                 <customWorkspaceVolumeEnabled>true</customWorkspaceVolumeEnabled>
@@ -360,11 +362,11 @@ data:
                     <envVars>
                       <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                         <key>JENKINS_URL</key>
-                        <value>http://jenkins</value>
+                        <value>http://{{ .Release.name }}-jenkins</value>
                       </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                       <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                         <key>JENKINS_TUNNEL</key>
-                        <value>jenkins-jnlp:50000</value>
+                        <value>{{ .Release.name }}-jenkins-jnlp:50000</value>
                       </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                       <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                         <key>TZ</key>
@@ -395,11 +397,11 @@ data:
                     <envVars>
                       <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                         <key>JENKINS_URL</key>
-                        <value>http://jenkins</value>
+                        <value>http://{{ .Release.name }}-jenkins</value>
                       </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                       <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                         <key>JENKINS_TUNNEL</key>
-                        <value>jenkins-jnlp:50000</value>
+                        <value>{{ .Release.name }}-jenkins-jnlp:50000</value>
                       </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                       <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                         <key>TZ</key>
@@ -424,7 +426,7 @@ data:
               <instanceCap>2147483647</instanceCap>
               <idleMinutes>10</idleMinutes>
               <label>image-builder</label>
-              <serviceAccount>jenkins</serviceAccount>
+              <serviceAccount>{{ .Release.name }}-jenkins</serviceAccount>
               <nodeSelector></nodeSelector>
               <nodeUsageMode>NORMAL</nodeUsageMode>
               <customWorkspaceVolumeEnabled>true</customWorkspaceVolumeEnabled>
@@ -457,11 +459,11 @@ data:
                   <envVars>
                     <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                       <key>JENKINS_URL</key>
-                      <value>http://jenkins</value>
+                      <value>http://{{ .Release.name }}-jenkins</value>
                     </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                     <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                       <key>JENKINS_TUNNEL</key>
-                      <value>jenkins-jnlp:50000</value>
+                      <value>{{ .Release.name }}-jenkins-jnlp:50000</value>
                     </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                     <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                       <key>TZ</key>
@@ -492,11 +494,11 @@ data:
                   <envVars>
                     <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                       <key>JENKINS_URL</key>
-                      <value>http://jenkins</value>
+                      <value>http://{{ .Release.name }}-jenkins</value>
                     </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                     <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                       <key>JENKINS_TUNNEL</key>
-                      <value>jenkins-jnlp:50000</value>
+                      <value>{{ .Release.name }}-jenkins-jnlp:50000</value>
                     </org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                     <org.csanchez.jenkins.plugins.kubernetes.ContainerEnvVar>
                       <key>TZ</key>
@@ -523,8 +525,8 @@ data:
           <serverUrl>https://kubernetes.default</serverUrl>
           <skipTlsVerify>false</skipTlsVerify>
           <namespace>cicd-iac</namespace>
-          <jenkinsUrl>http://jenkins</jenkinsUrl>
-          <jenkinsTunnel>jenkins-jnlp:50000</jenkinsTunnel>
+          <jenkinsUrl>http://{{ .Release.name }}-jenkins</jenkinsUrl>
+          <jenkinsTunnel>{{ .Release.name }}-jenkins-jnlp:50000</jenkinsTunnel>
           <containerCap>10</containerCap>
           <retentionTimeout>5</retentionTimeout>
           <connectTimeout>0</connectTimeout>
@@ -603,7 +605,7 @@ data:
     <?xml version='1.1' encoding='UTF-8'?>
     <jenkins.model.JenkinsLocationConfiguration>
       <adminAddress>admin@cluster.local</adminAddress>
-      <jenkinsUrl>http://jenkins.{{ .Values.dnsSuffix }}</jenkinsUrl>
+      <jenkinsUrl>http://{{ .Release.name }}-jenkins.{{ .Values.dnsSuffix }}</jenkinsUrl>
     </jenkins.model.JenkinsLocationConfiguration>
 
   plugins.txt:
@@ -653,7 +655,7 @@ data:
             <configVersion>2</configVersion>
             <userRemoteConfigs>
             <hudson.plugins.git.UserRemoteConfig>
-                <url>http://gogs:3000/gogs/$PROJ.git</url>
+                <url>http://{{ .Release.name }}-gogs:3000/gogs/$PROJ.git</url>
             </hudson.plugins.git.UserRemoteConfig>
             </userRemoteConfigs>
             <branches>
@@ -684,7 +686,7 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: jenkins
+  name: {{ .Release.name }}-jenkins
   labels:
     app: jenkins
 spec:
@@ -693,12 +695,12 @@ spec:
     type: Recreate
   selector:
     matchLabels:
-      name: jenkins
+      name: {{ .Release.name }}-jenkins
       app: jenkins
   template:
     metadata:
       labels:
-        name: jenkins
+        name: {{ .Release.name }}-jenkins
         app: jenkins
     spec:
       initContainers:
@@ -781,7 +783,7 @@ spec:
               readOnly: false
       dnsPolicy: ClusterFirst
       restartPolicy: Always
-      serviceAccountName: jenkins
+      serviceAccountName: {{ .Release.name }}-jenkins
       volumes:
         - name: plugins
           emptyDir: {}
@@ -793,7 +795,7 @@ spec:
           emptyDir: {}
         - name: jenkins-config
           configMap:
-            name: jenkins
+            name: {{ .Release.name }}-jenkins
         - name: jenkins-jobs
           configMap:
-            name: jenkins-jobs
+            name: {{ .Release.name }}-jenkins-jobs

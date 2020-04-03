@@ -7,7 +7,7 @@ stringData:
   database-password: sonarqube
   database-user: sonarqube
 metadata:
-  name: sonardb
+  name: {{ .Release.name }}-sonardb
   labels:
     app: sonarqube
 type: Opaque
@@ -20,20 +20,20 @@ metadata:
   generation: 1
   labels:
     app: sonarqube
-  name: sonardb
+  name: {{ .Release.name }}-sonardb
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: sonardb
+      name: {{ .Release.name }}-sonardb
       app: sonarqube
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
+        name: {{ .Release.name }}-sonardb
         app: sonarqube
-        name: sonardb
     spec:
       containers:
       - env:
@@ -103,20 +103,20 @@ metadata:
   generation: 1
   labels:
     app: sonarqube
-  name: sonarqube
+  name: {{ .Release.name }}-sonarqube
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: sonarqube
-      deploymentconfig: sonarqube
+      name: {{ .Release.name }}-sonarqube
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
         app: sonarqube
-        deploymentconfig: sonarqube
+        name: {{ .Release.name }}-sonarqube
     spec:
       containers:
       - env:
@@ -187,12 +187,9 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  annotations:
-    template.openshift.io/expose-uri: postgres://{.spec.clusterIP}:{.spec.ports[?(.name=="postgresql")].port}
   labels:
     app: sonarqube
-    template: postgresql-template
-  name: sonardb
+  name: {{ .Release.name }}-sonardb
 spec:
   ports:
   - name: postgresql
@@ -200,7 +197,8 @@ spec:
     protocol: TCP
     targetPort: 5432
   selector:
-    name: sonardb
+    name: {{ .Release.name }}-sonardb
+    app: sonarqube
   sessionAffinity: None
   type: ClusterIP
 
@@ -211,7 +209,7 @@ kind: Service
 metadata:
   labels:
     app: sonarqube
-  name: sonarqube
+  name: {{ .Release.name }}-sonarqube
 spec:
   ports:
   - name: 9000-tcp
@@ -219,7 +217,8 @@ spec:
     protocol: TCP
     targetPort: 9000
   selector:
-    deploymentconfig: sonarqube
+    name: {{ .Release.name }}-sonarqube
+    app: sonarqube
   sessionAffinity: None
   type: ClusterIP
 
@@ -228,7 +227,7 @@ spec:
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
-  name: sonarqube-ingress
+  name: {{ .Release.name }}-sonarqube-ingress
   labels:
     app: sonarqube
   annotations:
@@ -237,10 +236,10 @@ metadata:
   generation: 1
 spec:
   rules:
-  - host: sonarqube.{{ .Values.dnsSuffix }}
+  - host: {{ .Release.name }}-sonarqube.{{ .Values.dnsSuffix }}
     http:
       paths:
       - path: /
         backend:
-          serviceName: sonarqube
+          serviceName: {{ .Release.name }}-sonarqube
           servicePort: 9000
