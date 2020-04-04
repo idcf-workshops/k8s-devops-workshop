@@ -1,6 +1,8 @@
 #!/bin/bash
 
-#示例项目：https://github.com/idcf-boat-house/boat-house
+# 课后练习时，无需执行此文件
+# 示例项目源代码：https://github.com/idcf-boat-house/boat-house
+
 
 set -e
 

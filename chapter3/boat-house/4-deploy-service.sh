@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# 注意，执行此脚本时，命令行“工作目录”应为示例项目所在位置（然后使用完整路径引用此文件并执行）
+# 示例项目源代码：https://github.com/idcf-boat-house/boat-house
+
 set -e
 
 ARG_1=$1

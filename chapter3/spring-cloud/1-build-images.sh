@@ -1,6 +1,7 @@
 #!/bin/bash
 
-#示例项目：https://github.com/idcf-devops-on-kubernetes/CoorAir
+# 课后练习时，无需执行此文件
+# 示例项目源代码：https://github.com/idcf-devops-on-kubernetes/CoorAir
 
 set -e
 
