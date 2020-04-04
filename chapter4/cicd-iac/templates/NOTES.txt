@@ -11,11 +11,11 @@ CICD 环境已安装完成。
 
 * 在集群外部：
 
-{{- if .Values.dnsSuffix }}
-  Jenkins: {{ .Release.Name }}-jenkins.{{ .Values.dnsSuffix }}
-  Gogs: {{ .Release.Name }}-gogs.{{ .Values.dnsSuffix }}
-  Nexus: {{ .Release.Name }}-nexus.{{ .Values.dnsSuffix }}
-  Sonarqube: {{ .Release.Name }}-sonarqube.{{ .Values.dnsSuffix }}
+{{- if .Values.ingressDomain }}
+  Jenkins: {{ .Release.Name }}-jenkins.{{ .Values.ingressDomain }}
+  Gogs: {{ .Release.Name }}-gogs.{{ .Values.ingressDomain }}
+  Nexus: {{ .Release.Name }}-nexus.{{ .Values.ingressDomain }}
+  Sonarqube: {{ .Release.Name }}-sonarqube.{{ .Values.ingressDomain }}
 
 {{- else }}
   1. 请运行此命令以获取集群节点 IP

@@ -16,9 +16,16 @@ function usage() {
     echo "   deploy       部署 CI CD 环境"
     echo "   delete       删除 CI CD 环境"
     echo
+    echo "OPTIONS:"
+    echo "   --ingress-domain       Ingress 主域名"
+    echo "   --registry             容器镜像仓库位置"
+    echo "   --registry-username    容器镜像仓库用户名"
+    echo "   --registry-password    容器镜像仓库密码"
+    echo
 }
 
-ARG_COMMAND=deploy
+ARG_COMMAND=
+INGRESS_DOMAIN=
 REGISTRY=
 REGISTRY_USERNAME=
 REGISTRY_PASSWORD=
@@ -31,6 +38,16 @@ while :; do
             ;;
         delete)
             ARG_COMMAND=delete
+            ;;
+        --ingress-domain)
+            if [ -n "$2" ]; then
+                INGRESS_DOMAIN=$2
+                shift
+            else
+                printf 'Error: "--ingress-domain" requires a non-empty value.\n' >&2
+                usage
+                exit 255
+            fi
             ;;
         --registry)
             if [ -n "$2" ]; then
@@ -99,7 +116,7 @@ function deploy() {
 
   kcd cicd-iac
   echo "正在等待部署完成，请稍候..."
-  helm install lab ./ -n cicd-iac --set "imagePushRegistry.location=$REGISTRY,imagePushRegistry.username=$REGISTRY_USERNAME,imagePushRegistry.password=$REGISTRY_PASSWORD"
+  helm install lab ./ -n cicd-iac --set "ingressDomain=$INGRESS_DOMAIN,imagePushRegistry.location=$REGISTRY,imagePushRegistry.username=$REGISTRY_USERNAME,imagePushRegistry.password=$REGISTRY_PASSWORD"
 }
 
 START=`date +%s`

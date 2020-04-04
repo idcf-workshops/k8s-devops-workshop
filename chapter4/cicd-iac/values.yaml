@@ -1,4 +1,4 @@
-dnsSuffix: ''
+ingressDomain: ''
 imagePushRegistry:
   location: ''
   username: ''

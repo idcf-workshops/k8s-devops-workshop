@@ -106,13 +106,13 @@ spec:
       name: {{ .Release.Name }}-gogs
       app: gogs
   sessionAffinity: None
-  {{- if .Values.dnsSuffix }}
+  {{- if .Values.ingressDomain }}
   type: ClusterIP
   {{- else }}
   type: NodePort
   {{- end }}
 
-{{- if .Values.dnsSuffix }}
+{{- if .Values.ingressDomain }}
 ---
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
@@ -126,7 +126,7 @@ metadata:
   generation: 1
 spec:
   rules:
-  - host: {{ .Release.Name }}-gogs.{{ .Values.dnsSuffix }}
+  - host: {{ .Release.Name }}-gogs.{{ .Values.ingressDomain }}
     http:
       paths:
       - path: /
@@ -235,8 +235,8 @@ data:
     ROOT = /opt/gogs/data/repositories
 
     [server]
-    ROOT_URL=http://{{ .Release.Name }}-gogs{{- if .Values.dnsSuffix }}.{{ .Values.dnsSuffix }}{{- end }}
-    SSH_DOMAIN={{ .Release.Name }}-securegogs{{- if .Values.dnsSuffix }}.{{ .Values.dnsSuffix }}{{- end }}
+    ROOT_URL=http://{{ .Release.Name }}-gogs{{- if .Values.ingressDomain }}.{{ .Values.ingressDomain }}{{- end }}
+    SSH_DOMAIN={{ .Release.Name }}-securegogs{{- if .Values.ingressDomain }}.{{ .Values.ingressDomain }}{{- end }}
     START_SSH_SERVER=true
     SSH_LISTEN_PORT=10022
 

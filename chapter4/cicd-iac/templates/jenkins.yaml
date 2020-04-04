@@ -52,7 +52,7 @@ metadata:
   labels:
     app: jenkins
 spec:
-    {{- if .Values.dnsSuffix }}
+    {{- if .Values.ingressDomain }}
     type: ClusterIP
     {{- else }}
     type: NodePort
@@ -67,7 +67,7 @@ spec:
       app: jenkins
     sessionAffinity: None
 
-{{- if .Values.dnsSuffix }}
+{{- if .Values.ingressDomain }}
 ---
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
@@ -81,7 +81,7 @@ metadata:
   generation: 1
 spec:
   rules:
-  - host: {{ .Release.Name }}-jenkins.{{ .Values.dnsSuffix }}
+  - host: {{ .Release.Name }}-jenkins.{{ .Values.ingressDomain }}
     http:
       paths:
       - path: /
@@ -533,7 +533,7 @@ data:
               </default>
               <int>3</int>
               <string>DNS_SUFFIX</string>
-              <string>{{ .Values.dnsSuffix }}</string>
+              <string>{{ .Values.ingressDomain }}</string>
               <string>DEPLOY_PREFIX</string>
               <string>{{ .Release.Name }}-</string>
               <string>IMAGE_PUSH_REGISTRY</string>
@@ -584,7 +584,7 @@ data:
     <?xml version='1.1' encoding='UTF-8'?>
     <jenkins.model.JenkinsLocationConfiguration>
       <adminAddress>admin@cluster.local</adminAddress>
-      <jenkinsUrl>http://{{ .Release.Name }}-jenkins{{- if .Values.dnsSuffix }}.{{ .Values.dnsSuffix }}{{- end }}</jenkinsUrl>
+      <jenkinsUrl>http://{{ .Release.Name }}-jenkins{{- if .Values.ingressDomain }}.{{ .Values.ingressDomain }}{{- end }}</jenkinsUrl>
     </jenkins.model.JenkinsLocationConfiguration>
 
   plugins.txt:

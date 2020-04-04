@@ -220,13 +220,13 @@ spec:
     name: {{ .Release.Name }}-sonarqube
     app: sonarqube
   sessionAffinity: None
-  {{- if .Values.dnsSuffix }}
+  {{- if .Values.ingressDomain }}
   type: ClusterIP
   {{- else }}
   type: NodePort
   {{- end }}
 
-{{- if .Values.dnsSuffix}}
+{{- if .Values.ingressDomain}}
 ---
 
 apiVersion: networking.k8s.io/v1beta1
@@ -241,7 +241,7 @@ metadata:
   generation: 1
 spec:
   rules:
-  - host: {{ .Release.Name }}-sonarqube.{{ .Values.dnsSuffix }}
+  - host: {{ .Release.Name }}-sonarqube.{{ .Values.ingressDomain }}
     http:
       paths:
       - path: /
