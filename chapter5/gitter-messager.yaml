@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitter-messager
+  labels:
+    app: gitter-messager
+spec:
+  strategy:
+    type: RollingUpdate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gitter-messager
+  template:
+    metadata:
+      labels:
+        app: gitter-messager
+    spec:
+      containers:
+        - name: app
+          image: ccr.ccs.tencentyun.com/idcf-k8s-devops/gitter-messager:v3
+          env:
+            - name: GITTER_ROOM_URL
+              value: https://api.gitter.im/v1/rooms/ROOM_ID/chatMessages
+            - name: GITTER_TOKEN
+              value: YOUR_TOKEN_VALUE
+          ports:
+            - name: http
+              containerPort: 80
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: 20m
+            limits:
+              memory: 256Mi
+              cpu: 200m
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitter-messager
+  labels:
+    app: gitter-messager
+spec:
+  type: ClusterIP
+  selector:
+    app: gitter-messager
+  ports:
+    - name: http
+      targetPort: 80
+      port: 80
