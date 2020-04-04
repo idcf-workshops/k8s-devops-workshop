@@ -4,7 +4,7 @@
 
 这是课程附带的示例代码，供学员自行练习时参考和使用。
 
-使用本仓库的命令行之前，需要确保你拥有一个合适的 bash 环境：
+使用本仓库的命令行之前，需要确保你拥有一个合适的 bash 命令行环境：
 
 * 如果你使用 Windows，可以使用 [WSL 2](https://docs.microsoft.com/zh-cn/windows/wsl/wsl2-install) 环境，或者 [Git Bash](https://git-scm.com/download/win)
 * 如果你使用 macOS/Linux 系统，使用系统内置的终端即可

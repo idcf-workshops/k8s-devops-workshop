@@ -101,25 +101,29 @@ metadata:
 data:
   hello-world: |-
     <?xml version='1.1' encoding='UTF-8'?>
-    <project>
+    <flow-definition plugin="workflow-job@2.38">
       <actions/>
       <description></description>
       <keepDependencies>false</keepDependencies>
-      <scm class="hudson.scm.NullSCM"/>
-      <canRoam>false</canRoam>
-      <disabled>false</disabled>
-      <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
-      <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+      <properties/>
+      <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.80">
+        <script>node(&quot;nodejs&quot;) {
+      container(&apos;nodejs&apos;){
+        stage(&quot;Hello Kubernetes&quot;) {
+            sh &apos;&apos;&apos;set +x
+            TOKEN=$(cat /run/secrets/kubernetes.io/serviceaccount/token)
+            wget -q --no-check-certificate --header &quot;Authorization: Bearer $TOKEN&quot; https://kubernetes.default/api/ -O -&apos;&apos;&apos;
+        }
+        stage(&apos;Hello node.js&apos;) {
+            sh &apos;set +x ; echo node.js version is $(node --version)&apos;
+        }
+      }
+    }</script>
+        <sandbox>true</sandbox>
+      </definition>
       <triggers/>
-      <concurrentBuild>false</concurrentBuild>
-      <builders>
-        <hudson.tasks.Shell>
-          <command>set +x; echo &quot;Hello world&quot;</command>
-        </hudson.tasks.Shell>
-      </builders>
-      <publishers/>
-      <buildWrappers/>
-    </project>
+      <disabled>false</disabled>
+    </flow-definition>
 
 
 ---
