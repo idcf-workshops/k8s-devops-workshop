@@ -4,6 +4,20 @@
 
 这是课程附带的示例代码，供学员自行练习时参考和使用。
 
+使用本仓库的命令行之前，需要确保你拥有一个合适的 bash 环境：
+
+* 如果你使用 Windows，可以使用 [WSL 2](https://docs.microsoft.com/zh-cn/windows/wsl/wsl2-install) 环境，或者 [Git Bash](https://git-scm.com/download/win)
+* 如果你使用 macOS/Linux 系统，使用系统内置的终端即可
+
+在本课程期间，常用的命令行工具有：
+
+* [kubectl](https://kubernetes.io/zh/docs/tasks/tools/install-kubectl/)
+* [docker](https://www.docker.com/products/docker-desktop)
+* [git](https://git-scm.com/)
+* [helm](https://helm.sh/docs/intro/install/)
+
+请对照其官方网站自行完成安装，并确保在你的命令行环境中可以使用使用它们。
+
 ## 课程介绍
 
 Kubernetes 已经在容器编排市场战胜其他选手，成为这一领域的事实标准。企业应当以引入Kubernetes 为契机，加速企业内部开发运维一体化（DevOps）建设。
