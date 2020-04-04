@@ -1,5 +1,8 @@
 #!/bin/bash
 
+
+
+
 function usage() {
     echo
     echo "Usage:"
@@ -16,6 +19,10 @@ function usage() {
 }
 
 ARG_COMMAND=deploy
+REGISTRY=
+REGISTRY_USERNAME=
+REGISTRY_PASSWORD=
+
 
 while :; do
     case $1 in
@@ -24,6 +31,36 @@ while :; do
             ;;
         delete)
             ARG_COMMAND=delete
+            ;;
+        --registry)
+            if [ -n "$2" ]; then
+                REGISTRY=$2
+                shift
+            else
+                printf 'Error: "--registry" requires a non-empty value.\n' >&2
+                usage
+                exit 255
+            fi
+            ;;
+        --registry-username)
+            if [ -n "$2" ]; then
+                REGISTRY_USERNAME=$2
+                shift
+            else
+                printf 'Error: "--registry-username" requires a non-empty value.\n' >&2
+                usage
+                exit 255
+            fi
+            ;;
+        --registry-password)
+            if [ -n "$2" ]; then
+                REGISTRY_PASSWORD=$2
+                shift
+            else
+                printf 'Error: "--registry-password" requires a non-empty value.\n' >&2
+                usage
+                exit 255
+            fi
             ;;
         -h|--help)
             usage
@@ -50,14 +87,19 @@ function kcd() {
 
 function deploy() {
   EXISTS=$(echo $NAMESPACES | grep cicd-iac)
-    if [ -z "$EXISTS" ]; then
-        kubectl create namespace cicd-iac || true
-        sleep 2
-    fi  
-  
+  if [ -z "$EXISTS" ]; then
+      kubectl create namespace cicd-iac || true
+      sleep 2
+  fi  
+
+  if [ -z "$REGISTRY" ]; then
+    echo "警告：不指定 '--registry' 参数值及其登录凭据时，将可能无法正常发布容器镜像"
+    echo "Warn: You may not be able to push container images without specifiying a value for the '--registry' option."
+  fi
+
   kcd cicd-iac
   echo "正在等待部署完成，请稍候..."
-  helm install lab ./ -n cicd-iac --set 'imagePushRegistry.location=ccr.ccs.tencentyun.com/idcf-k8s-devops,imagePushRegistry.username=100000627191,imagePushRegistry.password=odGJpN4onmC'
+  helm install lab ./ -n cicd-iac --set "imagePushRegistry.location=$REGISTRY,imagePushRegistry.username=$REGISTRY_USERNAME,imagePushRegistry.password=$REGISTRY_PASSWORD"
 }
 
 START=`date +%s`

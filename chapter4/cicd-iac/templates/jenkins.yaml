@@ -8,7 +8,7 @@ metadata:
 ---
 
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 groupNames: null
 metadata:
   name: {{ .Release.Name }}_jenkins_edit
@@ -531,15 +531,13 @@ data:
               <default>
                 <comparator class="hudson.util.CaseInsensitiveComparator"/>
               </default>
-              <int>{{- if .Values.imagePushRegistry.location }}3{{- else }}2{{- end }}</int>
+              <int>3</int>
               <string>DNS_SUFFIX</string>
               <string>{{ .Values.dnsSuffix }}</string>
               <string>DEPLOY_PREFIX</string>
               <string>{{ .Release.Name }}-</string>
-              {{- if .Values.imagePushRegistry.location }}
               <string>IMAGE_PUSH_REGISTRY</string>
               <string>{{ .Values.imagePushRegistry.location }}</string>
-              {{- end }}
             </tree-map>
           </envVars>
         </hudson.slaves.EnvironmentVariablesNodeProperty>
