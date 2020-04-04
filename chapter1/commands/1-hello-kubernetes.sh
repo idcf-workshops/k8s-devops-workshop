@@ -17,16 +17,13 @@
 查看 Pod 的日志
     kubectl logs pods/static-site
 
-把服务公开给外界访问
+把服务公开给外界访问（如果你的集群在云上，可使用 --type LoadBalancer）
     kubectl expose pods/static-site --type NodePort
 
-查看服务端口
+查看服务端口或 IP
     kubectl get services/static-site
 
-示例集群节点的 IP 地址：
-    - 192.144.144.246
-    - 140.143.251.142
-    - 140.143.229.50
-
+获取你的集群节点的 IP 地址并访问它
+    
 删除示例
     kubectl delete pod/static-site svc/static-site
