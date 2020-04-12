@@ -21,6 +21,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: {{ .Release.Name }}-jenkins
+    namespace: {{ .Release.Namespace }}
 
 ---
 
